@@ -2,9 +2,9 @@
 
 | Student's name | SCIPER |
 | -------------- | ------ |
-| | |
-| | |
-| | |
+| Ziyad BAGHOURI | 342896 |
+| Rayane BENTAHAR| 361420|
+| Ayman BAKIRI| |
 
 [Milestone 1](#milestone-1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
 
@@ -12,16 +12,16 @@
 
 **10% of the final grade**
 
-This is a preliminary milestone to let you set up goals for your final project and assess the feasibility of your ideas.
-Please, fill the following sections about your project.
-
-*(max. 2000 characters per section)*
-
 ### Dataset
 
-> Find a dataset (or multiple) that you will explore. Assess the quality of the data it contains and how much preprocessing / data-cleaning it will require before tackling visualization. We recommend using a standard dataset as this course is not about scraping nor data processing.
->
-> Hint: some good pointers for finding quality publicly available datasets ([Google dataset search](https://datasetsearch.research.google.com/), [Kaggle](https://www.kaggle.com/datasets), [OpenSwissData](https://opendata.swiss/en/), [SNAP](https://snap.stanford.edu/data/) and [FiveThirtyEight](https://data.fivethirtyeight.com/)).
+#### Global Cybersecurity Threats (2015–2024) - Source: https://www.kaggle.com/datasets/atharvasoundankar/global-cybersecurity-threats-2015-2024
+
+This dataset contains records of cyberattacks reported across different countries and industries over a ten-year period. Each entry describes a cybersecurity incident and includes information about the attack type, the technique used to carry it out, the targeted industry, and the resulting impact in terms of data loss and financial damage.
+
+The dataset combines several complementary dimensions that make it well suited for interactive data visualization. It includes **temporal information** (year of the attack), **geographical data** (country), **categorical attributes** (threat type, attack vector, affected industry), and **quantitative metrics** such as data breached, financial impact, and response time.
+
+These variables allow us to explore patterns in global cyber threats and to build interactive visualizations in **JavaScript** that reveal trends over time, compare attack methods, and analyze how different industries and countries are affected by cybersecurity incidents.
+
 
 ### Problematic
 
