@@ -4,7 +4,7 @@
 | -------------- | ------ |
 | Ziyad BAGHOURI | 342896 |
 | Rayane BENTAHAR| 361420|
-| Ayman BAKIRI| |
+| Ayman BAKIRI| 327169 |
 
 [Milestone 1](#milestone-1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
 
@@ -25,9 +25,18 @@ These variables allow us to explore patterns in global cyber threats and to buil
 
 ### Problematic
 
-> Frame the general topic of your visualization and the main axis that you want to develop.
-> - What am I trying to show with my visualization?
-> - Think of an overview for the project, your motivation, and the target audience.
+Cyberattacks have become increasingly frequent and costly in recent years, affecting governments, businesses, and critical infrastructures worldwide. Despite the growing importance of cybersecurity, the global landscape of cyber threats remains difficult to interpret due to the variety of attack types, targeted industries, and the scale of their impacts. Visualizing this information can help uncover patterns and trends that are otherwise difficult to identify in raw data.
+
+The goal of this project is to visualize **how cybersecurity threats evolve globally between 2015 and 2024**, focusing on three main dimensions: **time, geography, and impact**.
+
+Our visualizations will allow users to explore questions such as:
+- How have different types of cyber threats evolved over time?
+- Which industries and regions are most affected by cybersecurity incidents?
+- What is the relationship between attack type and the resulting financial or data loss impact?
+
+The motivation behind this project is to make complex cybersecurity data easier to understand through interactive visual exploration. By transforming structured incident data into intuitive visualizations using **JavaScript**, users will be able to explore global trends, compare attack patterns, and better understand the scale and consequences of cyber threats.
+
+The target audience includes **students, cybersecurity enthusiasts, analysts, and the general public** interested in understanding how cyber threats evolve and impact different sectors worldwide.
 
 ### Exploratory Data Analysis
 
