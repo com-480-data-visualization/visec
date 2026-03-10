@@ -1,26 +1,68 @@
 # COM-480 - Global Cybersecurity Threats
 
-## Dataset: 
+## Dataset
 
-This project uses the [Global Cybersecurity Threats (2015–2024) dataset](https://www.kaggle.com/datasets/atharvasoundankar/global-cybersecurity-threats-2015-2024), which contains records of cyberattacks reported across different countries and industries over a ten-year period. Each entry describes a cybersecurity incident and includes information about the attack type, the technique used to carry it out, the targeted industry, and the resulting impact in terms of data loss and financial damage.
+This project uses the **EuRepoC Global Dataset of Cyber Incidents**, available at  
+https://eurepoc.eu/table-view/.
 
-The dataset combines several complementary dimensions that make it well suited for interactive data visualization. It includes **temporal information** (year of the attack), **geographical data** (country), **categorical attributes** (threat type, attack vector, affected industry), and **quantitative metrics** such as data breached, financial impact, and response time.
+The EuRepoC dataset is a curated database of real-world cyber operations compiled by cybersecurity researchers, containing over 4,000 documented cases worldwide. It documents cyber operations and significant cyber events involving governments, organizations, and infrastructure worldwide. Each row in the dataset corresponds to a documented cyber incident and includes detailed information about the actors involved, the targets, the type of cyber operation, and its potential impact.
+
+The original dataset is relatively complex and contains **84 variables** describing different aspects of cyber incidents. These variables cover a wide range of information, including:
+
+- general incident information (name, description, date)
+- actors involved in the incident (initiator and receiver)
+- geographic information (countries and regions)
+- incident classification and attack techniques
+- political, legal, and economic responses
+- various impact indicators and metadata related to attribution and sources
+
+While this richness makes the dataset valuable for research, many of these variables are **not directly relevant for exploratory visualization**. Several columns describe legal attribution processes, sanctions, metadata about sources, or other highly specialized attributes that would add unnecessary complexity to the visualization phase.
+
+For this reason, we performed a **data selection step** to reduce the dataset to a smaller and more interpretable subset of variables. The goal of this step was to keep only the variables that capture the **core dimensions of cyber incidents** relevant for visualization: time, geography, actors, incident characteristics, and impact.
+
+The following columns were retained:
+
+- `start_date` – date of the cyber incident  
+- `incident_type` – classification of the cyber incident  
+- `receiver_country` – country of the targeted entity  
+- `receiver_region` – geographic region of the target  
+- `receiver_category` – type of target (government, organization, etc.)  
+- `initiator_country` – country associated with the initiating actor  
+- `initiator_category` – type of initiating actor  
+- `data_theft` – indicator of whether data theft occurred  
+- `has_disruption` – indicator of service disruption  
+- `disruption` – additional disruption indicator  
+- `hijacking` – indicator of hijacking activity  
+- `economic_impact` – indicator of economic consequences  
+- `impact_indicator_value` – quantitative indicator of the incident impact  
+
+
+The resulting dataset is significantly **lighter and easier to interpret**, while still preserving the most important information needed to analyze global cyber incidents. It retains the key analytical dimensions required for visualization:
+
+- **time** (when incidents occur)
+- **geography** (where incidents occur)
+- **actors** (who initiates and who is targeted)
+- **incident characteristics**
+- **impact indicators**
 
 
 ## Problematic
 
-Cyberattacks have become increasingly frequent and costly in recent years, affecting governments, businesses, and critical infrastructures worldwide. Despite the growing importance of cybersecurity, the global landscape of cyber threats remains difficult to interpret due to the variety of attack types, targeted industries, and the scale of their impacts. Visualizing this information can help uncover patterns and trends that are otherwise difficult to identify in raw data.
+Cyber incidents have become an increasingly important component of international relations and digital security. Governments, organizations, and critical infrastructures around the world are frequently targeted by cyber operations ranging from espionage and data theft to service disruptions and politically motivated attacks. However, the global landscape of cyber incidents remains difficult to interpret due to the large number of actors involved, the diversity of targets, and the complexity of cyber operations.
 
-The goal of this project is to visualize **how cybersecurity threats evolve globally between 2015 and 2024**, focusing on three main dimensions: **time, geography, and impact**.
+Although many cyber incidents are documented publicly, the information is often scattered across reports, news articles, and security analyses. As a result, it is challenging to obtain a clear overview of **where cyber incidents occur, who initiates them, who is targeted, and what their impact is**.
 
-Our visualizations will allow users to explore questions such as:
-- How have different types of cyber threats evolved over time?
-- Which industries and regions are most affected by cybersecurity incidents?
-- What is the relationship between attack type and the resulting financial or data loss impact?
+The objective of this project is therefore to **explore and visualize the global dynamics of cyber incidents** using the EuRepoC dataset. By transforming structured incident-level data into interactive visualizations, we aim to make patterns and relationships within the cyber incident landscape easier to understand.
 
-The motivation behind this project is to make complex cybersecurity data easier to understand through interactive visual exploration. By transforming structured incident data into intuitive visualizations using **JavaScript**, users will be able to explore global trends, compare attack patterns, and better understand the scale and consequences of cyber threats.
 
-The target audience includes **students, cybersecurity enthusiasts, analysts, and the general public** interested in understanding how cyber threats evolve and impact different sectors worldwide.
+Through interactive visualizations, the project aims to answer questions such as:
+
+- Which countries are most frequently targeted by cyber incidents?
+- Which countries or actors are most often associated with initiating cyber operations?
+- What types of cyber incidents occur most frequently?
+- What kinds of impacts (e.g., disruption or data theft) are most common?
+
+By presenting these patterns visually through an interactive web interface, the project seeks to provide a clearer and more intuitive understanding of the global cyber incident landscape. The target audience includes **students, researchers, cybersecurity analysts, and the general public** interested in exploring how cyber incidents are distributed across countries, actors, and sectors worldwide.
 
 ### Exploratory Data Analysis
 
