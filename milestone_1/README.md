@@ -1,26 +1,10 @@
-# Project of Data Visualization (COM-480)
+# COM-480 - Global Cybersecurity Threats
 
-| Student's name | SCIPER |
-| -------------- | ------ |
-| Ziyad BAGHOURI | 342896 |
-| Rayane BENTAHAR| 361420|
-| Ayman BAKIRI| 327169 |
+## Dataset: 
 
-[Milestone 1](#milestone-1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
-
-## Milestone 1 (20th March, 5pm)
-
-**10% of the final grade**
-
-### Dataset
-
-#### Global Cybersecurity Threats (2015–2024) - Source: https://www.kaggle.com/datasets/atharvasoundankar/global-cybersecurity-threats-2015-2024
-
-This dataset contains records of cyberattacks reported across different countries and industries over a ten-year period. Each entry describes a cybersecurity incident and includes information about the attack type, the technique used to carry it out, the targeted industry, and the resulting impact in terms of data loss and financial damage.
+This project uses the [Global Cybersecurity Threats (2015–2024) dataset](https://www.kaggle.com/datasets/atharvasoundankar/global-cybersecurity-threats-2015-2024), which contains records of cyberattacks reported across different countries and industries over a ten-year period. Each entry describes a cybersecurity incident and includes information about the attack type, the technique used to carry it out, the targeted industry, and the resulting impact in terms of data loss and financial damage.
 
 The dataset combines several complementary dimensions that make it well suited for interactive data visualization. It includes **temporal information** (year of the attack), **geographical data** (country), **categorical attributes** (threat type, attack vector, affected industry), and **quantitative metrics** such as data breached, financial impact, and response time.
-
-These variables allow us to explore patterns in global cyber threats and to build interactive visualizations in **JavaScript** that reveal trends over time, compare attack methods, and analyze how different industries and countries are affected by cybersecurity incidents.
 
 
 ### Problematic
