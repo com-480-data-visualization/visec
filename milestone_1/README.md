@@ -7,7 +7,7 @@ This project uses the [Global Cybersecurity Threats (2015–2024) dataset](https
 The dataset combines several complementary dimensions that make it well suited for interactive data visualization. It includes **temporal information** (year of the attack), **geographical data** (country), **categorical attributes** (threat type, attack vector, affected industry), and **quantitative metrics** such as data breached, financial impact, and response time.
 
 
-### Problematic
+## Problematic
 
 Cyberattacks have become increasingly frequent and costly in recent years, affecting governments, businesses, and critical infrastructures worldwide. Despite the growing importance of cybersecurity, the global landscape of cyber threats remains difficult to interpret due to the variety of attack types, targeted industries, and the scale of their impacts. Visualizing this information can help uncover patterns and trends that are otherwise difficult to identify in raw data.
 
