@@ -2,11 +2,12 @@
 
 | Student's name | SCIPER |
 | -------------- | ------ |
-| | |
-| | |
-| | |
+| Ziyad BAGHOURI | 342896 |
+| Rayane BENTAHAR| 361420|
+| Ayman BAKIRI| 327169 |
 
 [Milestone 1](#milestone-1) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
+
 
 ## Milestone 1 (20th March, 5pm)
 
@@ -56,4 +57,3 @@ Please, fill the following sections about your project.
 
 - < 24h: 80% of the grade for the milestone
 - < 48h: 70% of the grade for the milestone
-
