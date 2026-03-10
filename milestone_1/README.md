@@ -1,4 +1,4 @@
-# COM-480 - Global Cybersecurity Threats
+# COM-480 — Global Cybersecurity Incidents
 
 ## Dataset
 
