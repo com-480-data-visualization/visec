@@ -64,10 +64,34 @@ Through interactive visualizations, the project aims to answer questions such as
 
 By presenting these patterns visually through an interactive web interface, the project seeks to provide a clearer and more intuitive understanding of the global cyber incident landscape. The target audience includes **students, researchers, cybersecurity analysts, and the general public** interested in exploring how cyber incidents are distributed across countries, actors, and sectors worldwide.
 
-### Exploratory Data Analysis
+## Exploratory Data Analysis
 
-> Pre-processing of the data set you chose
-> - Show some basic statistics and get insights about the data
+To better understand the structure of the dataset and identify interesting patterns, we performed a brief exploratory analysis focusing on two key dimensions: **the countries most frequently targeted by cyber incidents** and **the relationships between initiating and targeted countries**.
+
+These visualizations help reveal the geopolitical structure of cyber operations and highlight recurring patterns in global cyber activity.
+
+
+### Most Targeted Countries
+
+![Top Target Countries](figures/top_target_countries.png)
+
+This visualization shows the **ten countries most frequently targeted by documented cyber incidents** in the dataset.
+
+The **United States appears as the most targeted country by a large margin**, reflecting its role as a major geopolitical and technological actor as well as the concentration of large organizations and digital infrastructure. Several European countries such as **Germany, France, and the United Kingdom** also appear frequently among the targets, indicating that highly developed and digitally connected economies tend to attract significant cyber activity.
+
+Countries involved in ongoing geopolitical tensions, such as **Ukraine and Israel**, are also present in the top targets. This highlights how cyber operations often accompany broader political or strategic conflicts.
+
+
+### Most Frequent Attacker–Target Relationships
+
+![Top Attack Pairs](figures/top_attack_pairs.png)
+
+The second visualization explores the **most frequent relationships between initiating and targeted countries**. Each bar represents a pair composed of an initiating country and a targeted country.
+
+Several clear geopolitical patterns emerge. The **China → United States** pair appears as the most frequent relationship in the dataset, followed by **Russia → United States** and **Russia → Ukraine**. These patterns reflect well-known cyber tensions between major global powers.
+
+Regional rivalries are also visible. For example, the dataset highlights relationships such as **North Korea → South Korea**, **Iran → Israel**, **Pakistan → India**, and **Russia → Ukraine** which correspond to long-standing geopolitical tensions in different regions of the world.
+
 
 ### Related work
 
