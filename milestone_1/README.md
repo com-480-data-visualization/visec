@@ -128,6 +128,7 @@ More concretely, this influenced our choices in the following ways:
 Our goal was therefore closer to editorial data visualization than to a monitoring dashboard: fewer controls, but a stronger explanatory structure.
 
 > - In case you are using a dataset that you have already explored in another context (ML or ADA course, semester project...), you are required to share the report of that work to outline the differences with the submission for this class.
+
 this dataset as not been used for any of the courses.
 
 
