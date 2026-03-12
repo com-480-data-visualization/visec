@@ -97,8 +97,37 @@ Regional rivalries are also visible. For example, the dataset highlights relatio
 
 
 > - What others have already done with the data?
+
+The EuRepoC project already provides several ways to explore the dataset online. Their platform includes an interactive table view and dashboard where users can filter incidents by country, actor, target, incident type, and time period. In other words, the original source already supports detailed exploration of individual incidents and combinations of variables.
+
+However, these existing interfaces are mainly designed for **database exploration** and **incident lookup**. They are very useful for searching and filtering, but they do not necessarily emphasize a compact visual narrative focused on a small number of strong geopolitical patterns. Our work builds on the same data, but with a different communication goal: to make the main structures of the dataset immediately understandable through selected visualizations and interpretation. This distinction is also consistent with EuRepoC’s own positioning of the dataset as a rich, multi-variable research resource.
+
 > - Why is your approach original?
+
+Our approach is original because we do not try to reproduce the EuRepoC interface. Instead, we curate the dataset and focus on a limited number of analytical dimensions that are most relevant for visual storytelling: who is targeted, who initiates incidents, and which attacker–target relationships appear most often.
+
+The originality of our project lies in three choices:
+
+first,**Selection rather than exhaustiveness**: instead of exposing all variables, we reduce the dataset to the dimensions that best reveal interpretable patterns.
+
+second,**Narrative visualization**: rather than letting the user search incident by incident, we highlight recurring global structures such as the dominance of certain targets or repeated geopolitical rivalries.
+
+finally,**Accessibility**: our visualizations are designed for a broader audience, including students and non-specialists, not only users already familiar with the database.
+So the contribution is not a new dataset, but a new reading of the dataset: more synthetic, more comparative, and more focused on communication.
+
 > - What source of inspiration do you take? Visualizations that you found on other websites or magazines (might be unrelated to your data).
+
+Our source of inspiration for the visual aspect comes from data storytelling tools that highlight the importance of simplicity, hierarchy, and ease of reading. Specifically, we follow the philosophy of the Our World in Data platform, which stresses the importance of explanatory and easily understandable visualizations for the general public. Additionally, the importance of choosing the type of chart based on the message to be delivered rather than on the type of chart itself, as proposed by the Financial Times Visual Vocabulary.
+
+More concretely, this influenced our choices in the following ways:
+
+- using sorted horizontal bar charts to make rankings easy to read;
+- privileging simple chart forms over visually complex dashboards;
+- pairing each figure with a short interpretation paragraph so that the reader understands not only what the chart shows, but also why it matters.
+
+Our goal was therefore closer to editorial data visualization than to a monitoring dashboard: fewer controls, but a stronger explanatory structure.
+
 > - In case you are using a dataset that you have already explored in another context (ML or ADA course, semester project...), you are required to share the report of that work to outline the differences with the submission for this class.
+this dataset as not been used for any of the courses.
 
 
