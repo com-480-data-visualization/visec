@@ -92,6 +92,16 @@ Several clear geopolitical patterns emerge. The **China → United States** pair
 
 Regional rivalries are also visible. For example, the dataset highlights relationships such as **North Korea → South Korea**, **Iran → Israel**, **Pakistan → India**, and **Russia → Ukraine** which correspond to long-standing geopolitical tensions in different regions of the world.
 
+### Most Frequent Incident Types
+
+![Top inident type](figures/top_incident_types_split.png)
+
+This visualization shows the **most common incident types** in the dataset. By separating combined labels into individual categories, it provides a clearer overview of the nature of cyber incidents. The chart shows that **Hijacking with Misuse, Disruption, and Data theft** are the most frequent categories, indicating that the dataset is largely dominated by incidents involving system misuse, operational disruption, and information theft.
+
+### Time Evolution
+![Incident Over Time](figures/incidents_over_time.png)
+
+This visualization shows how the number of documented cyber incidents changes over time. It reveals a strong increase in the number of incidents, particularly from the 2010s onward, with a clear peak in recent years. This suggests that cyber incidents have become increasingly prominent, while also reflecting improved documentation and greater public reporting of such events.
 
 ### Related work
 

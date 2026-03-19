@@ -123,3 +123,75 @@ plt.tight_layout()
 plt.savefig(os.path.join(figures_path, "top_attack_pairs.png"))
 plt.close()
 
+# -------------------------
+# 3. Distribution of incident types 
+# -------------------------
+
+if "incident_type" in df.columns:
+    df_types = df[df["incident_type"].apply(is_valid)].copy()
+
+    incident_series = (
+        df_types["incident_type"]
+        .astype(str)
+        .str.split(";")
+        .explode()
+        .str.strip()
+    )
+
+    incident_series = incident_series[
+        incident_series.apply(is_valid)
+    ]
+
+    top_incident_types = (
+        incident_series.value_counts().head(10)
+    )
+
+    plt.figure(figsize=(10, 6))
+
+    sns.barplot(
+        x=top_incident_types.values,
+        y=top_incident_types.index,
+        palette="crest"
+    )
+
+    plt.title("Top 10 Incident Types", fontsize=16, weight="bold")
+    plt.xlabel("Number of Incidents")
+    plt.ylabel("Incident Type")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(figures_path, "top_incident_types_split.png"))
+    plt.close()
+
+# -------------------------
+# 4. Evolution of incidents over time
+# -------------------------
+
+if "start_date" in df.columns:
+    df_time = df.copy()
+
+    df_time["start_date"] = pd.to_datetime(df_time["start_date"], errors="coerce")
+
+    df_time = df_time[df_time["start_date"].notna()].copy()
+    df_time["year"] = df_time["start_date"].dt.year
+    df_time = df_time[(df_time["year"] >= 2000) & (df_time["year"] <= 2025)]
+    yearly_counts = (
+        df_time["year"]
+        .value_counts()
+        .sort_index()
+    )
+
+    plt.figure(figsize=(11, 6))
+
+    sns.lineplot(
+        x=yearly_counts.index,
+        y=yearly_counts.values,
+        marker="o"
+    )
+
+    plt.title("Evolution of Cyber Incidents Over Time", fontsize=16, weight="bold")
+    plt.xlabel("Year")
+    plt.ylabel("Number of Incidents")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(figures_path, "incidents_over_time.png"))
+    plt.close()
