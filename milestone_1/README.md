@@ -108,11 +108,11 @@ Our approach is original because we do not try to reproduce the EuRepoC interfac
 
 The originality of our project lies in three choices:
 
-first,**Selection rather than exhaustiveness**: instead of exposing all variables, we reduce the dataset to the dimensions that best reveal interpretable patterns.
+- **Selection rather than exhaustiveness**: instead of exposing all variables, we reduce the dataset to the dimensions that best reveal interpretable patterns.
 
-second,**Narrative visualization**: rather than letting the user search incident by incident, we highlight recurring global structures such as the dominance of certain targets or repeated geopolitical rivalries.
+-  **Narrative visualization**: rather than letting the user search incident by incident, we highlight recurring global structures such as the dominance of certain targets or repeated geopolitical rivalries.
 
-finally,**Accessibility**: our visualizations are designed for a broader audience, including students and non-specialists, not only users already familiar with the database.
+- **Accessibility**: our visualizations are designed for a broader audience, including students and non-specialists, not only users already familiar with the database.
 So the contribution is not a new dataset, but a new reading of the dataset: more synthetic, more comparative, and more focused on communication.
 
 > - What source of inspiration do you take? Visualizations that you found on other websites or magazines (might be unrelated to your data).
