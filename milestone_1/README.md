@@ -94,7 +94,7 @@ Regional rivalries are also visible. For example, the dataset highlights relatio
 
 ### Most Frequent Incident Types
 
-![Top inident type](figures/top_incident_types_split.png)
+![Top incident type](figures/top_incident_types_split.png)
 
 This visualization shows the **most common incident types** in the dataset. By separating combined labels into individual categories, it provides a clearer overview of the nature of cyber incidents. The chart shows that **Hijacking with Misuse, Disruption, and Data theft** are the most frequent categories, indicating that the dataset is largely dominated by incidents involving system misuse, operational disruption, and information theft.
 
