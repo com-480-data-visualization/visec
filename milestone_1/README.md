@@ -18,8 +18,7 @@ The original dataset is relatively complex and contains **84 variables** describ
 
 While this richness makes the dataset valuable for research, many of these variables are **not directly relevant for exploratory visualization**. Several columns describe legal attribution processes, sanctions, metadata about sources, or other highly specialized attributes that would add unnecessary complexity to the visualization phase.
 
-For this reason, we performed a **data selection step** to reduce the dataset to a smaller and more interpretable subset of variables. The goal of this step was to keep only the variables that capture the **core dimensions of cyber incidents** relevant for visualization: time, geography, actors, incident characteristics, and impact.
-
+For this reason, we performed a **data selection step** to reduce the dataset to a smaller and more interpretable subset of variables. 
 The following columns were retained:
 
 - `start_date` – date of the cyber incident  
@@ -66,9 +65,7 @@ By presenting these patterns visually through an interactive web interface, the 
 
 ## Exploratory Data Analysis
 
-To better understand the structure of the dataset and identify interesting patterns, we performed a brief exploratory analysis focusing on two key dimensions: **the countries most frequently targeted by cyber incidents** and **the relationships between initiating and targeted countries**.
-
-These visualizations help reveal the geopolitical structure of cyber operations and highlight recurring patterns in global cyber activity.
+To better understand the structure of the dataset and identify meaningful patterns, we conducted an exploratory analysis focusing on key dimensions of cyber activity: **the most frequently targeted countries**, **attacker–target relationships**, **incident types**, and **their evolution over time**.
 
 
 ### Most Targeted Countries
@@ -101,44 +98,47 @@ This visualization shows the **most common incident types** in the dataset. By s
 ### Time Evolution
 ![Incident Over Time](figures/incidents_over_time.png)
 
-This visualization shows how the number of documented cyber incidents changes over time. It reveals a strong increase in the number of incidents, particularly from the 2010s onward, with a clear peak in recent years. This suggests that cyber incidents have become increasingly prominent, while also reflecting improved documentation and greater public reporting of such events.
+This last visualization shows how the number of documented cyber incidents changes over time. It reveals a strong increase in the number of incidents, particularly from the 2010s onward, with a clear peak in recent years. This suggests that cyber incidents have become increasingly prominent, while also reflecting improved documentation and greater public reporting of such events.
 
-### Related work
+## Related work
 
 
 > - What others have already done with the data?
 
-The EuRepoC project already provides several ways to explore the dataset online. Their platform includes an interactive table view and dashboard where users can filter incidents by country, actor, target, incident type, and time period. In other words, the original source already supports detailed exploration of individual incidents and combinations of variables.
+The EuRepoC project already provides several ways to explore the dataset online. Their platform includes an interactive table view and dashboard where users can filter incidents by country, actor, target, incident type, and time period. In practice, the original source supports detailed exploration of individual incidents and combinations of variables.
 
-However, these existing interfaces are mainly designed for **database exploration** and **incident lookup**. They are very useful for searching and filtering, but they do not necessarily emphasize a compact visual narrative focused on a small number of strong geopolitical patterns. Our work builds on the same data, but with a different communication goal: to make the main structures of the dataset immediately understandable through selected visualizations and interpretation. This distinction is also consistent with EuRepoC’s own positioning of the dataset as a rich, multi-variable research resource.
+However, these interfaces are primarily designed for **database exploration** and **incident lookup**. While they are effective for querying specific cases, they do not emphasize a compact visual narrative that highlights the most important geopolitical patterns.
+
+Our project builds on this dataset but aims to take a different approach: instead of focusing on detailed filtering, we will focus on **high-level visual summaries** that make the main structures of the dataset immediately understandable.
 
 > - Why is your approach original?
 
-Our approach is original because we do not try to reproduce the EuRepoC interface. Instead, we curate the dataset and focus on a limited number of analytical dimensions that are most relevant for visual storytelling: who is targeted, who initiates incidents, and which attacker–target relationships appear most often.
+Our approach differs from existing tools in that we do not aim to reproduce the EuRepoC interface. Instead, we will curate the dataset and focus on a limited number of analytical dimensions that are most relevant for visual storytelling: who is targeted, who initiates incidents, and which attacker–target relationships are most prominent.
 
-The originality of our project lies in three choices:
+The originality of our approach lies in three main choices:
 
-- **Selection rather than exhaustiveness**: instead of exposing all variables, we reduce the dataset to the dimensions that best reveal interpretable patterns.
+- **Selection rather than exhaustiveness**: we will reduce the dataset to the dimensions that best reveal interpretable patterns  
+- **Narrative visualization**: we will highlight recurring global structures such as dominant targets and geopolitical rivalries  
+- **Accessibility**: we aim to design visualizations that are understandable to a broad audience, including non-specialists  
 
--  **Narrative visualization**: rather than letting the user search incident by incident, we highlight recurring global structures such as the dominance of certain targets or repeated geopolitical rivalries.
-
-- **Accessibility**: our visualizations are designed for a broader audience, including students and non-specialists, not only users already familiar with the database.
-So the contribution is not a new dataset, but a new reading of the dataset: more synthetic, more comparative, and more focused on communication.
+Therefore, the contribution of this project is not the creation of new data, but the development of a **clearer and more interpretable representation** of existing data.
 
 > - What source of inspiration do you take? Visualizations that you found on other websites or magazines (might be unrelated to your data).
 
-Our source of inspiration for the visual aspect comes from data storytelling tools that highlight the importance of simplicity, hierarchy, and ease of reading. Specifically, we follow the philosophy of the Our World in Data platform, which stresses the importance of explanatory and easily understandable visualizations for the general public. Additionally, the importance of choosing the type of chart based on the message to be delivered rather than on the type of chart itself, as proposed by the Financial Times Visual Vocabulary.
+Our visual approach is inspired by data storytelling platforms such as *Our World in Data*, which emphasize clarity, simplicity, and accessibility for a wide audience.
 
-More concretely, this influenced our choices in the following ways:
+We also draw inspiration from the **Financial Times Visual Vocabulary**, which promotes choosing visualization types based on the message rather than the data format.
 
-- using sorted horizontal bar charts to make rankings easy to read;
-- privileging simple chart forms over visually complex dashboards;
-- pairing each figure with a short interpretation paragraph so that the reader understands not only what the chart shows, but also why it matters.
+These principles will guide our design choices, including:
 
-Our goal was therefore closer to editorial data visualization than to a monitoring dashboard: fewer controls, but a stronger explanatory structure.
+- using sorted bar charts to clearly present rankings  
+- favoring simple and readable visualizations over complex dashboards  
+- pairing visualizations with short explanatory text to enhance interpretation  
+
+Our objective is to follow an **editorial data storytelling approach**, focusing on clarity and communication rather than exhaustive exploration.
 
 > - In case you are using a dataset that you have already explored in another context (ML or ADA course, semester project...), you are required to share the report of that work to outline the differences with the submission for this class.
 
-this dataset has not been used for any of the courses.
+This dataset has not been used in any previous coursework.
 
 
