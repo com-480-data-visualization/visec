@@ -17,6 +17,7 @@ The report for Milestone 1 can be found [here](milestone_1/README.md).
 
 ### Milestone 2 (17th April, 5pm)
 
+The report for Milestone 2 can be found [here](milestone_2/README.md).
 
 
 ### Milestone 3 (29th May, 5pm)
