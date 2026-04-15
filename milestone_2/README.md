@@ -117,6 +117,7 @@ You can run the project locally using a simple Python server:
 ```bash
 cd src
 python3 -m http.server 8080
+```
 
 ### What is already working
 
