@@ -68,9 +68,8 @@ An optional choropleth world map where each country is shaded by the number of i
 | **Top Targeted Countries (bar chart)** | D3.js (v7), SVG, JavaScript | D3.js, Marks & Channels |
 | **Top Incident Types (bar chart)** | D3.js (v7), SVG, JavaScript | D3.js, Marks & Channels |
 | **Attacker–Target Pairs (bar / chord)** | D3.js (v7), d3-chord (planned), SVG | Graphs, Interactions, More interactive D3 |
-| **World Map (extra)** | D3.js (v7), d3-geo, TopoJSON (planned) | *TODO* |
-| **Website skeleton & styling** | HTML5, CSS3 (custom properties, grid, flexbox), vanilla JavaScript | *TODO* |
-| **Data preprocessing** | Python (Pandas, Matplotlib — used for EDA in Milestone 1) | *TODO* |
+| **World Map (extra)** | D3.js (v7), d3-geo, TopoJSON (planned) | Maps, Practical maps. |
+| **Website skeleton & styling** | HTML5, CSS3 (custom properties, grid, flexbox), vanilla JavaScript | Basic web dev, JavaScript, Storytelling |
 
 ---
 
