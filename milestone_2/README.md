@@ -106,11 +106,17 @@ These additions improve the experience but can be dropped without losing the pro
 
 ## Functional Prototype
 
-The current prototype is available in the [`src/`](../src/) directory. To view it, open `src/index.html` in a browser or run a local server:
+The current prototype is available online:
+
+[Live Demo](https://com-480-data-visualization.github.io/visec/src/)
+
+The source code is located in the [`src/`](src/) directory.
+
+You can run the project locally using a simple Python server:
 
 ```bash
-cd src && python3 -m http.server 8080
-```
+cd src
+python3 -m http.server 8080
 
 ### What is already working
 
