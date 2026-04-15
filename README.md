@@ -19,7 +19,7 @@ The report for Milestone 1 can be found [here](milestone_1/README.md).
 
 The report for Milestone 2 can be found [here](milestone_2/README.md).
 
-The functional prototype website is available [here](https://com-480-data-visualization.github.io/visec/src/)
+The functional prototype website is available [here](https://com-480-data-visualization.github.io/visec/src/).
 
 
 ### Milestone 3 (29th May, 5pm)
