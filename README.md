@@ -5,6 +5,7 @@
 | Ziyad BAGHOURI | 342896 |
 | Rayane BENTAHAR| 361420|
 | Ayman BAKIRI| 327169 |
+| Mohamed Sami GHRAB| 315264 |
 
 [Milestone 1](milestone_1/README.md) • [Milestone 2](#milestone-2) • [Milestone 3](#milestone-3)
 ## Overview
