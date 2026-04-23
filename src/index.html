@@ -8,6 +8,8 @@
   <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
+  <div id="live-region" class="sr-only" aria-live="polite"></div>
+
   <header class="topbar">
     <div class="container topbar-inner">
       <div class="brand">Global Cyber Incident Patterns</div>
@@ -24,24 +26,24 @@
   <main>
     <section class="hero container">
       <div class="eyebrow">Cyber incidents · global patterns</div>
+
       <div class="hero-grid">
         <div>
           <h1>Understanding global cyber incident patterns</h1>
           <p class="subtitle">
-            This website presents a curated view of cyber incident data through a small number of
-            analytical dimensions that are especially relevant for interpretation:
-            <strong>how incidents evolve over time</strong>,
-            <strong>which countries are targeted most often</strong>,
-            <strong>which incident types dominate</strong>, and
-            <strong>which attacker–target relationships stand out</strong>.
+            This website presents a curated view of cyber incident data through four analytical
+            dimensions: <strong>time</strong>, <strong>target geography</strong>,
+            <strong>incident types</strong>, and <strong>attacker–target relationships</strong>.
+            The goal is not to reproduce a complex repository, but to surface the most interpretable
+            structures in the data.
           </p>
         </div>
+
         <aside class="hero-card">
           <h3>Why this website matters</h3>
           <p>
-            Rather than reproducing a complex repository interface, this project focuses on clarity,
-            selection, and interpretation. The objective is to make recurring structures in cyber
-            incidents easier to understand for a broad audience.
+            Rather than exposing dozens of variables at once, the website uses a small number of
+            coordinated views to support comparison, exploration, and narrative interpretation.
           </p>
         </aside>
       </div>
@@ -53,6 +55,10 @@
           <div class="section-tag">Editorial approach</div>
           <h2>Built for clear visual storytelling</h2>
         </div>
+        <p class="note">
+          The structure follows a simple visual logic: overview first, then ranked comparisons,
+          then recurring geopolitical relationships.
+        </p>
       </div>
 
       <div class="principles">
@@ -60,17 +66,17 @@
           <div class="kicker">1 · Selection</div>
           <h3>Focus on interpretable dimensions</h3>
           <p>
-            The dataset was reduced to the variables that best highlight meaningful structures:
-            time, geography, actors, incident characteristics, and impact indicators.
+            The interface emphasizes variables that are easy to compare and explain:
+            time, country exposure, incident type, and repeated attacker–target flows.
           </p>
         </article>
 
         <article class="principle-card">
-          <div class="kicker">2 · Narrative</div>
-          <h3>One chart, one clear message</h3>
+          <div class="kicker">2 · Interaction</div>
+          <h3>Use coordinated views, not isolated charts</h3>
           <p>
-            Each section is designed around a specific question, allowing the reader to move from
-            overall trends to more precise geopolitical relationships.
+            A country selected in the ranking chart directly filters the relationships view,
+            turning separate charts into a connected exploratory system.
           </p>
         </article>
 
@@ -78,8 +84,8 @@
           <div class="kicker">3 · Accessibility</div>
           <h3>Readable for non-specialists</h3>
           <p>
-            The visual language remains simple and direct, with ranked charts, short labels,
-            and accompanying explanations that support interpretation.
+            Ranked bars, short explanatory text, visible filter states, and stable labels
+            help the website stay understandable for a broad audience.
           </p>
         </article>
       </div>
@@ -89,13 +95,32 @@
       <div class="metric-grid" id="metrics"></div>
     </section>
 
+    <section class="controls container" aria-label="Active filters">
+      <div class="controls-card">
+        <div class="filter-cluster">
+          <div class="filter-group">
+            <span class="filter-label">Time window</span>
+            <span class="filter-pill" id="range-pill">2000–2025</span>
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">Selected country</span>
+            <span class="filter-pill is-muted" id="country-pill">All countries</span>
+          </div>
+        </div>
+
+        <button id="reset-filters" class="reset-btn" type="button">
+          Reset all filters
+        </button>
+      </div>
+    </section>
+
     <section class="story-section container" id="evolution">
       <div class="section-heading">
         <div>
           <div class="section-tag">Section 1</div>
           <h2>How have cyber incidents evolved over time?</h2>
         </div>
-        <p class="chart-note">This overview shows how incident frequency changes across time.</p>
+        <p class="chart-note">Overview first: the timeline sets the global temporal context.</p>
       </div>
 
       <div class="section-card">
@@ -105,15 +130,23 @@
             <p>
               This opening chart provides a broad temporal view of the dataset. It shows that cyber
               incidents are not distributed evenly across time: the number of recorded incidents rises
-              sharply in recent years, which suggests an intensification in reporting, activity, or both.
+              sharply in recent years, suggesting an intensification in reporting, activity, or both.
             </p>
             <div class="takeaway">
-              <strong>Key takeaway:</strong> The temporal trend establishes the broader context for the rest
-              of the website by showing that cyber incidents have become much more prominent over time.
+              <strong>Key takeaway:</strong> The timeline establishes the macro-pattern of the website.
+              It works as the overview layer from which the rest of the exploration begins.
             </div>
           </div>
+
           <div class="chart-shell">
-            <div class="chart-title">Evolution of cyber incidents over time</div>
+            <div class="chart-header">
+              <div>
+                <div class="chart-title" id="timeline-title">Evolution of cyber incidents over time</div>
+                <div class="chart-subtitle" id="timeline-status">
+                  Brush the overview chart to zoom into a time window.
+                </div>
+              </div>
+            </div>
             <div id="evolution-chart"></div>
           </div>
         </div>
@@ -126,7 +159,7 @@
           <div class="section-tag">Section 2</div>
           <h2>Which countries are targeted most often?</h2>
         </div>
-        <p class="chart-note">A ranking makes the most exposed target countries immediately visible.</p>
+        <p class="chart-note">Position and length make concentration immediately visible.</p>
       </div>
 
       <div class="section-card">
@@ -134,18 +167,37 @@
           <div class="section-text">
             <h3>Targeting is concentrated on a limited set of countries</h3>
             <p>
-              The distribution of targeted countries is highly uneven. A small number of countries appear
-              far more often than others, suggesting that cyber incidents are concentrated around major
-              geopolitical, economic, and strategic actors rather than being uniformly distributed.
+              The distribution of targeted countries is highly uneven. A small number of countries
+              appear far more often than others, suggesting that cyber incidents concentrate around
+              major geopolitical, economic, and strategic actors.
             </p>
             <div class="takeaway">
-              <strong>Key takeaway:</strong> The chart highlights concentration rather than dispersion, making
-              it easier to identify the central countries in the dataset.
+              <strong>Interaction:</strong> Click a country bar to filter the relationships chart and
+              focus only on the pairings involving that country.
             </div>
           </div>
+
           <div class="chart-shell">
-            <div class="chart-title">Top 10 countries targeted by cyber incidents</div>
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Top targeted countries</div>
+                <div class="chart-subtitle" id="targets-status">
+                  Hover for exact values. Click a country to filter the relationships chart.
+                </div>
+              </div>
+              <button id="clear-country" class="text-button" type="button" hidden>
+                Clear country
+              </button>
+            </div>
+
             <div id="targets-chart"></div>
+
+            <div class="detail-card">
+              <h4>Country focus</h4>
+              <p id="country-detail">
+                Click a country bar to keep it selected and update the relationships chart.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -157,7 +209,7 @@
           <div class="section-tag">Section 3</div>
           <h2>What types of cyber incidents are most common?</h2>
         </div>
-        <p class="chart-note">This ranking compares the dominant forms of cyber incidents in the dataset.</p>
+        <p class="chart-note">A ranked comparison clarifies which forms of activity dominate.</p>
       </div>
 
       <div class="section-card">
@@ -165,17 +217,25 @@
           <div class="section-text">
             <h3>Some incident types dominate the overall picture</h3>
             <p>
-              Not all types of cyber incidents appear with the same frequency. This chart highlights which
-              forms of activity dominate the dataset, helping distinguish between patterns such as
-              disruption, theft, ransomware, hijacking, or other recurring forms of cyber aggression.
+              Not all types of cyber incidents appear with the same frequency. This chart highlights
+              which forms of activity dominate the dataset, helping distinguish between disruption,
+              theft, ransomware, hijacking, and other recurring forms of cyber aggression.
             </p>
             <div class="takeaway">
-              <strong>Key takeaway:</strong> A simple ranking of incident types makes the main forms of cyber
-              activity easier to compare and interpret.
+              <strong>Key takeaway:</strong> This view complements the timeline and geography views by
+              showing what kinds of incidents structure the dataset most strongly.
             </div>
           </div>
+
           <div class="chart-shell">
-            <div class="chart-title">Top 10 incident types</div>
+            <div class="chart-header">
+              <div>
+                <div class="chart-title">Top incident types</div>
+                <div class="chart-subtitle" id="types-status">
+                  Hover for exact values. This view complements the time and country perspectives.
+                </div>
+              </div>
+            </div>
             <div id="initiators-chart"></div>
           </div>
         </div>
@@ -188,7 +248,7 @@
           <div class="section-tag">Section 4</div>
           <h2>Which attacker–target relationships stand out?</h2>
         </div>
-        <p class="chart-note">This view highlights the most frequent country-to-country cyber rivalries.</p>
+        <p class="chart-note">Details on demand: focus the strongest repeated country-to-country pairs.</p>
       </div>
 
       <div class="section-card">
@@ -201,13 +261,31 @@
               in the dataset and makes persistent rivalries and asymmetric targeting more visible.
             </p>
             <div class="takeaway">
-              <strong>Key takeaway:</strong> Relationship-based analysis helps move from isolated incidents
-              to broader geopolitical structures.
+              <strong>Interaction:</strong> Click a country in Section 2 to focus this view, then click a
+              pair here to inspect it more closely.
             </div>
           </div>
+
           <div class="chart-shell">
-            <div class="chart-title">Most frequent cyber incident relationships</div>
+            <div class="chart-header">
+              <div>
+                <div class="chart-title" id="relationships-title">
+                  Most frequent cyber incident relationships
+                </div>
+                <div class="chart-subtitle" id="relationships-status">
+                  Click a country in Section 2 to focus this chart, or click a pair here for more detail.
+                </div>
+              </div>
+            </div>
+
             <div id="relationships-chart"></div>
+
+            <div class="detail-card">
+              <h4>Relationship detail</h4>
+              <p id="relationship-detail">
+                Click a relationship bar to display the currently selected pair.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -227,8 +305,8 @@
           <h3>What becomes visible</h3>
           <p>
             The website shows four core structures: a strong recent increase in recorded incidents,
-            a concentration of targets in a limited number of countries, the dominance of a few incident
-            types, and the recurrence of specific attacker–target pairs.
+            a concentration of targets in a limited number of countries, the dominance of a few
+            incident types, and the recurrence of specific attacker–target pairs.
           </p>
         </article>
 
@@ -236,8 +314,8 @@
           <h3>Why this matters</h3>
           <p>
             By selecting only the most informative variables and pairing each chart with a short
-            explanation, the website turns a large existing dataset into a more accessible and
-            interpretable representation of global cyber incident patterns.
+            explanation, the website turns a large dataset into a more accessible and interpretable
+            representation of global cyber incident patterns.
           </p>
         </article>
       </div>
@@ -245,7 +323,7 @@
   </main>
 
   <footer class="container">
-    COM-480 Data Visualization &middot; EPFL 2025 &middot; EuRepoC dataset
+    COM-480 Data Visualization · EPFL 2025 · EuRepoC dataset
   </footer>
 
   <script src="script.js"></script>
