@@ -21,6 +21,45 @@ const MISSING_VALUES = new Set([
   undefined
 ]);
 
+const NAME_TO_ISO = {
+  "Afghanistan": 4, "Albania": 8, "Algeria": 12, "Argentina": 32,
+  "Armenia": 51, "Australia": 36, "Austria": 40, "Azerbaijan": 31,
+  "Bahrain": 48, "Bangladesh": 50, "Belarus": 112, "Belgium": 56,
+  "Bolivia": 68, "Bosnia and Herzegovina": 70, "Brazil": 76, "Brunei": 96,
+  "Bulgaria": 100, "Cambodia": 116, "Cameroon": 120, "Canada": 124,
+  "Chile": 152, "China": 156, "Colombia": 170, "Costa Rica": 188,
+  "Croatia": 191, "Cuba": 192, "Cyprus": 196, "Czech Republic": 203,
+  "Denmark": 208, "Ecuador": 218, "Egypt": 818, "El Salvador": 222,
+  "Estonia": 233, "Ethiopia": 231, "Finland": 246, "France": 250,
+  "Georgia": 268, "Germany": 276, "Ghana": 288, "Greece": 300,
+  "Guatemala": 320, "Honduras": 340, "Hungary": 348, "Iceland": 352,
+  "India": 356, "Indonesia": 360, "Iran": 364, "Iraq": 368,
+  "Ireland": 372, "Israel": 376, "Italy": 380, "Japan": 392,
+  "Jordan": 400, "Kazakhstan": 398, "Kenya": 404, "Kuwait": 414,
+  "Kyrgyzstan": 417, "Laos": 418, "Latvia": 428, "Lebanon": 422,
+  "Libya": 434, "Lithuania": 440, "Luxembourg": 442, "Malaysia": 458,
+  "Mexico": 484, "Moldova": 498, "Montenegro": 499, "Morocco": 504,
+  "Myanmar": 104, "Nepal": 524, "Netherlands": 528, "New Zealand": 554,
+  "Nicaragua": 558, "Nigeria": 566, "North Korea": 408, "North Macedonia": 807,
+  "Norway": 578, "Oman": 512, "Pakistan": 586, "Palestine": 275,
+  "Panama": 591, "Peru": 604, "Philippines": 608, "Poland": 616,
+  "Portugal": 620, "Qatar": 634, "Romania": 642, "Russia": 643,
+  "Saudi Arabia": 682, "Serbia": 688, "Singapore": 702, "Slovakia": 703,
+  "Slovenia": 705, "Somalia": 706, "South Africa": 710, "South Korea": 410,
+  "South Sudan": 728, "Spain": 724, "Sri Lanka": 144, "Sudan": 736,
+  "Sweden": 752, "Switzerland": 756, "Syria": 760, "Taiwan": 158,
+  "Tajikistan": 762, "Tanzania": 834, "Thailand": 764, "Tunisia": 788,
+  "Turkey": 792, "Turkmenistan": 795, "Uganda": 800, "Ukraine": 804,
+  "United Arab Emirates": 784, "United Kingdom": 826, "United States": 840,
+  "Uruguay": 858, "Uzbekistan": 860, "Venezuela": 862, "Vietnam": 704,
+  "Yemen": 887, "Zimbabwe": 716
+};
+
+const ISO_TO_NAME = Object.fromEntries(
+  Object.entries(NAME_TO_ISO).map(([name, iso]) => [iso, name])
+);
+
+let worldData = null;
 let incidents = [];
 
 const state = {
@@ -644,12 +683,348 @@ function initScrollSpy() {
   sections.forEach(section => observer.observe(section));
 }
 
+function buildCountryMapStats() {
+  const rows = getTimeFilteredIncidents();
+  const receivedFrom = new Map();
+  const sentTo = new Map();
+
+  rows.forEach(row => {
+    row.targetCountries.forEach(target => {
+      if (!receivedFrom.has(target)) receivedFrom.set(target, new Map());
+      row.initiatorCountries.forEach(init => {
+        if (init === target) return;
+        const m = receivedFrom.get(target);
+        m.set(init, (m.get(init) || 0) + 1);
+      });
+    });
+
+    row.initiatorCountries.forEach(init => {
+      if (!sentTo.has(init)) sentTo.set(init, new Map());
+      row.targetCountries.forEach(target => {
+        if (target === init) return;
+        const m = sentTo.get(init);
+        m.set(target, (m.get(target) || 0) + 1);
+      });
+    });
+  });
+
+  const stats = new Map();
+
+  new Set([...receivedFrom.keys(), ...sentTo.keys()]).forEach(country => {
+    const rf = receivedFrom.get(country) || new Map();
+    const st = sentTo.get(country) || new Map();
+
+    const totalReceived = [...rf.values()].reduce((a, b) => a + b, 0);
+    const totalSent = [...st.values()].reduce((a, b) => a + b, 0);
+
+    let topAttacker = null, topAttackerCount = 0;
+    rf.forEach((count, init) => {
+      if (count > topAttackerCount) { topAttacker = init; topAttackerCount = count; }
+    });
+
+    let topTarget = null, topTargetCount = 0;
+    st.forEach((count, target) => {
+      if (count > topTargetCount) { topTarget = target; topTargetCount = count; }
+    });
+
+    stats.set(country, { totalReceived, totalSent, topAttacker, topAttackerCount, topTarget, topTargetCount });
+  });
+
+  return stats;
+}
+
+function renderWorldMap() {
+  const container = document.getElementById("world-map-chart");
+  if (!container || !worldData) return;
+  container.innerHTML = "";
+
+  const infoBox = document.getElementById("map-info-box");
+  if (infoBox) infoBox.hidden = true;
+
+  const countries = topojson.feature(worldData, worldData.objects.countries);
+  const borders = topojson.mesh(worldData, worldData.objects.countries, (a, b) => a !== b);
+
+  const stats = buildCountryMapStats();
+
+  const isoToFeature = new Map();
+  countries.features.forEach(f => isoToFeature.set(+f.id, f));
+
+  const nameToFeature = new Map();
+  Object.entries(NAME_TO_ISO).forEach(([name, iso]) => {
+    const f = isoToFeature.get(iso);
+    if (f) nameToFeature.set(name, f);
+  });
+
+  const rect = container.getBoundingClientRect();
+  const width = Math.max(rect.width || 600, 400);
+  const height = Math.round(width * 0.52);
+
+  const projection = d3.geoNaturalEarth1()
+    .scale(width / 6.28)
+    .translate([width / 2, height / 2]);
+
+  const path = d3.geoPath().projection(projection);
+
+  const maxReceived = d3.max([...stats.values()], d => d.totalReceived) || 1;
+  const colorScale = d3.scaleSequential([0, maxReceived], d3.interpolate("#dce8f3", ACCENT));
+
+  const svg = d3.select(container).append("svg")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .style("width", "100%")
+    .style("height", "auto");
+
+  const defs = svg.append("defs");
+
+  const MAP_IN = "#e63946";
+  const MAP_OUT = "#f4a261";
+  const arrowColors = [MAP_IN, MAP_OUT];
+  ["arrow-in", "arrow-out"].forEach((id, i) => {
+    defs.append("marker")
+      .attr("id", id)
+      .attr("viewBox", "0 0 10 10")
+      .attr("refX", 9)
+      .attr("refY", 5)
+      .attr("markerWidth", 5)
+      .attr("markerHeight", 5)
+      .attr("orient", "auto")
+      .append("path")
+      .attr("d", "M 0 0 L 10 5 L 0 10 z")
+      .attr("fill", arrowColors[i]);
+  });
+
+  svg.append("path")
+    .datum({ type: "Sphere" })
+    .attr("fill", "#e8f0f7")
+    .attr("d", path);
+
+  function getOriginalFill(d) {
+    const name = ISO_TO_NAME[+d.id];
+    if (!name) return "#d6d2cc";
+    const s = stats.get(name);
+    return s && s.totalReceived ? colorScale(s.totalReceived) : "#d6d2cc";
+  }
+
+  const countryPaths = svg.selectAll(".country")
+    .data(countries.features)
+    .enter()
+    .append("path")
+    .attr("class", "country")
+    .attr("d", path)
+    .attr("fill", getOriginalFill)
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 0.5)
+    .style("cursor", "default");
+
+  const arcLayer = svg.append("g").attr("class", "arc-layer");
+
+  function clearArcs() {
+    arcLayer.selectAll("*").remove();
+    countryPaths
+      .attr("fill", getOriginalFill)
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 0.5);
+  }
+
+  function drawArc(from, to, color, markerId) {
+    if (!from || !to) return;
+    const [x1, y1] = from;
+    const [x2, y2] = to;
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    if (len < 2) return;
+
+    const shorten = Math.min(20, len * 0.15);
+    const ex = x2 - (dx / len) * shorten;
+    const ey = y2 - (dy / len) * shorten;
+
+    const mx = (x1 + ex) / 2;
+    const my = (y1 + ey) / 2;
+    const offset = len * 0.3;
+    const cx = mx + (-dy / len) * offset;
+    const cy = my + (dx / len) * offset;
+
+    arcLayer.append("path")
+      .attr("d", `M ${x1},${y1} Q ${cx},${cy} ${ex},${ey}`)
+      .attr("fill", "none")
+      .attr("stroke", color)
+      .attr("stroke-width", 2.5)
+      .attr("opacity", 0.85)
+      .attr("marker-end", `url(#${markerId})`);
+  }
+
+  countryPaths
+    .on("mouseover", function(event, d) {
+      const name = ISO_TO_NAME[+d.id];
+      if (!name) return;
+
+      const s = stats.get(name);
+
+      clearArcs();
+      d3.select(this)
+        .attr("stroke", "#18212b")
+        .attr("stroke-width", 2)
+        .style("cursor", "pointer");
+
+      const hoveredCentroid = projection(d3.geoCentroid(d));
+      if (!hoveredCentroid) return;
+
+      if (s && s.topAttacker && nameToFeature.has(s.topAttacker)) {
+        const af = nameToFeature.get(s.topAttacker);
+        const ac = projection(d3.geoCentroid(af));
+        if (ac) {
+          countryPaths.filter(f => f === af).attr("fill", MAP_IN);
+          drawArc(ac, hoveredCentroid, MAP_IN, "arrow-in");
+        }
+      }
+
+      if (s && s.topTarget && nameToFeature.has(s.topTarget)) {
+        const tf = nameToFeature.get(s.topTarget);
+        const tc = projection(d3.geoCentroid(tf));
+        if (tc) {
+          countryPaths.filter(f => f === tf).attr("fill", MAP_OUT);
+          drawArc(hoveredCentroid, tc, MAP_OUT, "arrow-out");
+        }
+      }
+
+      if (infoBox) {
+        let html = `<strong>${name}</strong>`;
+        if (s) {
+          if (s.totalReceived) {
+            html += `<br><span style="color:#f4a4a8">▲ ${s.totalReceived.toLocaleString()} received</span>`;
+            if (s.topAttacker) html += `<br>Top attacker: <strong>${s.topAttacker}</strong> (${s.topAttackerCount})`;
+          }
+          if (s.totalSent) {
+            html += `<br><span style="color:#fcd5b0">▶ ${s.totalSent.toLocaleString()} initiated</span>`;
+            if (s.topTarget) html += `<br>Top target: <strong>${s.topTarget}</strong> (${s.topTargetCount})`;
+          }
+        } else {
+          html += `<br><span style="opacity:0.65">No incidents in selected period</span>`;
+        }
+        infoBox.innerHTML = html;
+        infoBox.hidden = false;
+      }
+    })
+    .on("mouseout", function() {
+      clearArcs();
+      if (infoBox) infoBox.hidden = true;
+    });
+
+  svg.append("path")
+    .datum(borders)
+    .attr("fill", "none")
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 0.4)
+    .attr("d", path);
+
+  const legendW = 130, legendH = 10;
+  const lx = width - legendW - 18;
+  const ly = height - 44;
+
+  const gradId = "map-choropleth-grad";
+  const grad = defs.append("linearGradient").attr("id", gradId);
+  grad.append("stop").attr("offset", "0%").attr("stop-color", "#dce8f3");
+  grad.append("stop").attr("offset", "100%").attr("stop-color", ACCENT);
+
+  const legend = svg.append("g").attr("transform", `translate(${lx},${ly})`);
+
+  legend.append("text")
+    .attr("y", -6)
+    .attr("fill", MUTED)
+    .style("font-size", "0.74rem")
+    .style("font-weight", "700")
+    .style("font-family", "Inter, sans-serif")
+    .text("Incidents received");
+
+  legend.append("rect")
+    .attr("width", legendW)
+    .attr("height", legendH)
+    .attr("rx", 3)
+    .attr("fill", `url(#${gradId})`);
+
+  const legendScale = d3.scaleLinear().domain([0, maxReceived]).range([0, legendW]);
+  legend.append("g")
+    .attr("transform", `translate(0,${legendH})`)
+    .call(d3.axisBottom(legendScale).ticks(3).tickFormat(d3.format(".0s")).tickSize(3))
+    .call(g => g.select(".domain").remove())
+    .selectAll("text")
+    .attr("fill", MUTED)
+    .style("font-size", "0.72rem")
+    .style("font-family", "Inter, sans-serif");
+}
+
+function updateFilterUI() {
+  const [start, end] = state.yearRange;
+  const timeFiltered = start !== PROJECT_YEAR_MIN || end !== PROJECT_YEAR_MAX;
+  const countryFiltered = !!state.selectedCountry;
+
+  const rangePill = document.getElementById("range-pill");
+  if (rangePill) rangePill.textContent = `${start}–${end}`;
+
+  const countryPill = document.getElementById("country-pill");
+  if (countryPill) {
+    countryPill.textContent = state.selectedCountry || "All countries";
+    countryPill.classList.toggle("is-muted", !countryFiltered);
+  }
+
+  const clearCountryBtn = document.getElementById("clear-country");
+  if (clearCountryBtn) clearCountryBtn.hidden = !countryFiltered;
+
+  const timelineStatus = document.getElementById("timeline-status");
+  if (timelineStatus) {
+    timelineStatus.textContent = timeFiltered
+      ? `Showing ${start}–${end} · All other charts are synchronized to this window.`
+      : "Brush the overview chart to zoom into a time window.";
+  }
+
+  const syncParts = [];
+  if (timeFiltered) syncParts.push(`${start}–${end}`);
+  if (countryFiltered) syncParts.push(state.selectedCountry);
+  const syncLabel = syncParts.length ? `Synced to: ${syncParts.join(" · ")}` : null;
+
+  const targetsStatus = document.getElementById("targets-status");
+  if (targetsStatus) {
+    targetsStatus.textContent = syncLabel
+      ? `${syncLabel} · Hover for values · Click a country to filter.`
+      : "Hover for exact values. Click a country to filter the relationships chart.";
+  }
+
+  const typesStatus = document.getElementById("types-status");
+  if (typesStatus) {
+    typesStatus.textContent = syncLabel
+      ? `${syncLabel} · This view complements the time and country perspectives.`
+      : "Hover for exact values. This view complements the time and country perspectives.";
+  }
+
+  const relStatus = document.getElementById("relationships-status");
+  if (relStatus) {
+    relStatus.textContent = syncLabel
+      ? `${syncLabel} · Click a country in Section 2 or a pair here for more detail.`
+      : "Click a country in Section 2 to focus this chart, or click a pair here for more detail.";
+  }
+}
+
 function renderAll() {
+  updateFilterUI();
   renderMetrics();
   renderTimeline();
   renderTargetsChart();
   renderTypesChart();
   renderRelationshipsChart();
+  renderWorldMap();
+
+  const [start, end] = state.yearRange;
+  const active = start !== PROJECT_YEAR_MIN || end !== PROJECT_YEAR_MAX || !!state.selectedCountry;
+  if (active) {
+    const shells = ["targets-chart", "initiators-chart", "relationships-chart"]
+      .map(id => document.getElementById(id)?.closest(".chart-shell"))
+      .filter(Boolean);
+    shells.forEach(s => s.classList.remove("sync-flash"));
+    void document.body.offsetWidth;
+    shells.forEach(s => {
+      s.classList.add("sync-flash");
+      s.addEventListener("animationend", () => s.classList.remove("sync-flash"), { once: true });
+    });
+  }
 }
 
 async function init() {
@@ -664,6 +1039,17 @@ async function init() {
       throw new Error("CSV loaded, but no usable rows were found.");
     }
 
+    document.getElementById("reset-filters").addEventListener("click", () => {
+      state.yearRange = [PROJECT_YEAR_MIN, PROJECT_YEAR_MAX];
+      state.selectedCountry = null;
+      renderAll();
+    });
+
+    document.getElementById("clear-country").addEventListener("click", () => {
+      state.selectedCountry = null;
+      renderAll();
+    });
+
     initScrollSpy();
     renderAll();
 
@@ -672,6 +1058,14 @@ async function init() {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(renderAll, 180);
     });
+
+    d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+      .then(world => { worldData = world; renderWorldMap(); })
+      .catch(() => {
+        const el = document.getElementById("world-map-chart");
+        if (el) el.innerHTML = `<p style="color:${MUTED};padding:12px 0;">Map data unavailable.</p>`;
+      });
+
   } catch (error) {
     console.error("App error:", error);
 

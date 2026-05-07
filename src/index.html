@@ -6,6 +6,7 @@
   <title>Global Cyber Incident Patterns</title>
   <link rel="stylesheet" href="style.css" />
   <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 </head>
 <body>
   <div id="live-region" class="sr-only" aria-live="polite"></div>
@@ -19,6 +20,7 @@
         <a href="#targets">Targets</a>
         <a href="#initiators">Incident types</a>
         <a href="#relationships">Relationships</a>
+        <a href="#world-map">Map</a>
       </nav>
     </div>
   </header>
@@ -287,6 +289,56 @@
               </p>
             </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-section container" id="world-map">
+      <div class="section-heading">
+        <div>
+          <div class="section-tag">Section 5</div>
+          <h2>Where do cyber attacks flow geographically?</h2>
+        </div>
+        <p class="chart-note">Hover a country to reveal its top attacker and primary target as directional arrows.</p>
+      </div>
+
+      <div class="section-card">
+        <div class="map-text-row">
+          <div class="section-text">
+            <h3>Attack flows trace the geopolitical fault lines</h3>
+            <p>
+              Each country is shaded by the number of cyber incidents it received.
+              Hovering a country draws two arrows: one incoming from its top attacker,
+              one outgoing to the country it most frequently targeted.
+            </p>
+          </div>
+          <div>
+            <div class="takeaway">
+              <strong>Interaction:</strong> Hover any shaded country to see its dominant
+              attacker–target relationship. The time window from Section 1 applies here too.
+            </div>
+            <div class="map-legend-aside">
+              <span class="legend-item">
+                <span class="legend-dot" style="background:#e63946;"></span>
+                Incoming attack
+              </span>
+              <span class="legend-item">
+                <span class="legend-dot" style="background:#f4a261;"></span>
+                Outgoing attack
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-shell">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Global cyber attack flow map</div>
+              <div class="chart-subtitle">Shading = incidents received · Hover a country for attack flow arrows</div>
+            </div>
+          </div>
+          <div id="world-map-chart"></div>
+          <div id="map-info-box" class="map-info-box" hidden></div>
         </div>
       </div>
     </section>
