@@ -64,7 +64,8 @@ let incidents = [];
 
 const state = {
   yearRange: [PROJECT_YEAR_MIN, PROJECT_YEAR_MAX],
-  selectedCountry: null
+  selectedCountry: null,
+  selectedRelationship: null
 };
 
 const countryAliases = {
@@ -195,21 +196,16 @@ function buildTypeData() {
     .slice(0, 10);
 }
 
-function buildPairData() {
-  const rows = getCountryFilteredIncidents();
+function buildGlobalPairData() {
+  const rows = getTimeFilteredIncidents();
   const counts = new Map();
 
   rows.forEach(row => {
     if (!row.initiatorCountries.length || !row.targetCountries.length) return;
 
-    const targets = state.selectedCountry
-      ? row.targetCountries.filter(t => t === state.selectedCountry)
-      : row.targetCountries;
-
-    if (!targets.length) return;
-
     row.initiatorCountries.forEach(initiator => {
-      targets.forEach(target => {
+      row.targetCountries.forEach(target => {
+        if (!initiator || !target || initiator === target) return;
         const key = `${initiator} → ${target}`;
         counts.set(key, (counts.get(key) || 0) + 1);
       });
@@ -219,6 +215,41 @@ function buildPairData() {
   return Array.from(counts, ([label, count]) => ({ label, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
+}
+
+function buildCountryRelationshipSides(country) {
+  const rows = getTimeFilteredIncidents();
+  const incomingCounts = new Map();
+  const outgoingCounts = new Map();
+
+  rows.forEach(row => {
+    const isTargeted = row.targetCountries.includes(country);
+    const isInitiator = row.initiatorCountries.includes(country);
+
+    if (isTargeted) {
+      row.initiatorCountries.forEach(initiator => {
+        if (!initiator || initiator === country) return;
+        incomingCounts.set(initiator, (incomingCounts.get(initiator) || 0) + 1);
+      });
+    }
+
+    if (isInitiator) {
+      row.targetCountries.forEach(target => {
+        if (!target || target === country) return;
+        outgoingCounts.set(target, (outgoingCounts.get(target) || 0) + 1);
+      });
+    }
+  });
+
+  return {
+    incoming: Array.from(incomingCounts, ([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8),
+
+    outgoing: Array.from(outgoingCounts, ([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8)
+  };
 }
 
 function createTooltip() {
@@ -482,6 +513,7 @@ function renderTimeline() {
 
       if (!event.selection) {
         state.yearRange = [PROJECT_YEAR_MIN, PROJECT_YEAR_MAX];
+        state.selectedRelationship = null;
         renderAll();
         return;
       }
@@ -501,6 +533,7 @@ function renderTimeline() {
       if (start > end) [start, end] = [end, start];
 
       state.yearRange = [start, end];
+      state.selectedRelationship = null;
       renderAll();
     });
 
@@ -628,6 +661,7 @@ function renderTargetsChart() {
     marginLeft: 160,
     onClick: d => {
       state.selectedCountry = state.selectedCountry === d.label ? null : d.label;
+      state.selectedRelationship = null;
       renderAll();
     },
     emptyMessage: "No target-country data available."
@@ -645,15 +679,214 @@ function renderTypesChart() {
   });
 }
 
-function renderRelationshipsChart() {
-  const data = buildPairData();
+function updateCountryDetail() {
+  const el = document.getElementById("country-detail");
+  if (!el) return;
 
-  renderBarChart("relationships-chart", data, ACCENT3, {
-    marginLeft: 210,
-    emptyMessage: state.selectedCountry
-      ? `No attacker–target pairs found for ${state.selectedCountry} in the selected years.`
-      : "No relationship data available."
+  if (!state.selectedCountry) {
+    el.textContent = "Click a country bar to keep it selected and update the relationships chart.";
+    return;
+  }
+
+  const country = state.selectedCountry;
+  const { incoming, outgoing } = buildCountryRelationshipSides(country);
+  const rows = getTimeFilteredIncidents();
+
+  const targetedCount = rows.filter(row => row.targetCountries.includes(country)).length;
+  const initiatedCount = rows.filter(row => row.initiatorCountries.includes(country)).length;
+
+  const topAttacker = incoming[0];
+  const topTarget = outgoing[0];
+
+  let html = `<strong>${country}</strong> appears as a target in <strong>${targetedCount.toLocaleString()}</strong> incidents`;
+  html += ` and as an initiator in <strong>${initiatedCount.toLocaleString()}</strong> incidents.`;
+
+  if (topAttacker) {
+    html += `<br>Main attacker: <strong>${topAttacker.label}</strong> (${topAttacker.count.toLocaleString()})`;
+  }
+
+  if (topTarget) {
+    html += `<br>Main target: <strong>${topTarget.label}</strong> (${topTarget.count.toLocaleString()})`;
+  }
+
+  el.innerHTML = html;
+}
+
+function updateRelationshipDetail() {
+  const el = document.getElementById("relationship-detail");
+  if (!el) return;
+
+  if (!state.selectedRelationship) {
+    if (state.selectedCountry) {
+      el.innerHTML = `Click a bar on the left to see <strong>who attacks ${state.selectedCountry}</strong>, or a bar on the right to see <strong>who ${state.selectedCountry} attacks</strong>.`;
+    } else {
+      el.textContent = "Click a relationship bar to display the currently selected pair.";
+    }
+    return;
+  }
+
+  const rel = state.selectedRelationship;
+
+  if (rel.direction === "global") {
+    const [from, to] = rel.label.split(" → ");
+    el.innerHTML = `<strong>${from}</strong> → <strong>${to}</strong> appears in <strong>${rel.count.toLocaleString()}</strong> incidents in the selected time window.`;
+    return;
+  }
+
+  if (rel.direction === "incoming") {
+    el.innerHTML = `<strong>${rel.label}</strong> attacks <strong>${state.selectedCountry}</strong> in <strong>${rel.count.toLocaleString()}</strong> incidents in the selected time window.`;
+    return;
+  }
+
+  if (rel.direction === "outgoing") {
+    el.innerHTML = `<strong>${state.selectedCountry}</strong> attacks <strong>${rel.label}</strong> in <strong>${rel.count.toLocaleString()}</strong> incidents in the selected time window.`;
+  }
+}
+
+function renderCountryRelationshipView(containerId, country) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  const { incoming, outgoing } = buildCountryRelationshipSides(country);
+
+  const incomingValid =
+    state.selectedRelationship &&
+    state.selectedRelationship.direction === "incoming" &&
+    incoming.some(d => d.label === state.selectedRelationship.label);
+
+  const outgoingValid =
+    state.selectedRelationship &&
+    state.selectedRelationship.direction === "outgoing" &&
+    outgoing.some(d => d.label === state.selectedRelationship.label);
+
+  if (state.selectedRelationship && !incomingValid && !outgoingValid) {
+    state.selectedRelationship = null;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.style.display = "grid";
+  wrapper.style.gridTemplateColumns = window.innerWidth <= 900 ? "1fr" : "1fr 1fr";
+  wrapper.style.gap = "18px";
+  wrapper.style.alignItems = "start";
+
+  const incomingPanel = document.createElement("div");
+  incomingPanel.innerHTML = `
+    <div style="font-size:0.92rem;font-weight:700;margin-bottom:8px;">
+      Who attacks ${country}?
+    </div>
+    <div id="relationships-incoming-chart"></div>
+  `;
+
+  const outgoingPanel = document.createElement("div");
+  outgoingPanel.innerHTML = `
+    <div style="font-size:0.92rem;font-weight:700;margin-bottom:8px;">
+      Who does ${country} attack?
+    </div>
+    <div id="relationships-outgoing-chart"></div>
+  `;
+
+  wrapper.appendChild(incomingPanel);
+  wrapper.appendChild(outgoingPanel);
+  container.appendChild(wrapper);
+
+  renderBarChart("relationships-incoming-chart", incoming, ACCENT3, {
+    selectedKey:
+      state.selectedRelationship?.direction === "incoming"
+        ? state.selectedRelationship.label
+        : null,
+    clickable: true,
+    marginLeft: 130,
+    onClick: d => {
+      state.selectedRelationship = {
+        direction: "incoming",
+        label: d.label,
+        count: d.count
+      };
+      renderRelationshipsChart();
+    },
+    emptyMessage: `No incoming attacker data for ${country} in the selected years.`
   });
+
+  renderBarChart("relationships-outgoing-chart", outgoing, ACCENT, {
+    selectedKey:
+      state.selectedRelationship?.direction === "outgoing"
+        ? state.selectedRelationship.label
+        : null,
+    clickable: true,
+    marginLeft: 130,
+    onClick: d => {
+      state.selectedRelationship = {
+        direction: "outgoing",
+        label: d.label,
+        count: d.count
+      };
+      renderRelationshipsChart();
+    },
+    emptyMessage: `No outgoing target data for ${country} in the selected years.`
+  });
+}
+
+function renderRelationshipsChart() {
+  const title = document.getElementById("relationships-title");
+  const status = document.getElementById("relationships-status");
+
+  if (!state.selectedCountry) {
+    if (state.selectedRelationship && state.selectedRelationship.direction !== "global") {
+      state.selectedRelationship = null;
+    }
+
+    if (title) {
+      title.textContent = "Most frequent cyber incident relationships";
+    }
+
+    if (status) {
+      status.textContent = "Click a country in Section 2 to split this view into incoming vs outgoing relationships.";
+    }
+
+    const data = buildGlobalPairData();
+
+    const globalValid =
+      state.selectedRelationship &&
+      state.selectedRelationship.direction === "global" &&
+      data.some(d => d.label === state.selectedRelationship.label);
+
+    if (state.selectedRelationship && !globalValid) {
+      state.selectedRelationship = null;
+    }
+
+    renderBarChart("relationships-chart", data, ACCENT3, {
+      selectedKey:
+        state.selectedRelationship?.direction === "global"
+          ? state.selectedRelationship.label
+          : null,
+      clickable: true,
+      marginLeft: 210,
+      onClick: d => {
+        state.selectedRelationship = {
+          direction: "global",
+          label: d.label,
+          count: d.count
+        };
+        renderRelationshipsChart();
+      },
+      emptyMessage: "No relationship data available."
+    });
+  } else {
+    if (title) {
+      title.textContent = `Attack relationships for ${state.selectedCountry}`;
+    }
+
+    if (status) {
+      status.textContent = `Left: who attacks ${state.selectedCountry} · Right: who ${state.selectedCountry} attacks.`;
+    }
+
+    renderCountryRelationshipView("relationships-chart", state.selectedCountry);
+  }
+
+  updateCountryDetail();
+  updateRelationshipDetail();
 }
 
 function initScrollSpy() {
@@ -717,17 +950,32 @@ function buildCountryMapStats() {
     const totalReceived = [...rf.values()].reduce((a, b) => a + b, 0);
     const totalSent = [...st.values()].reduce((a, b) => a + b, 0);
 
-    let topAttacker = null, topAttackerCount = 0;
+    let topAttacker = null;
+    let topAttackerCount = 0;
     rf.forEach((count, init) => {
-      if (count > topAttackerCount) { topAttacker = init; topAttackerCount = count; }
+      if (count > topAttackerCount) {
+        topAttacker = init;
+        topAttackerCount = count;
+      }
     });
 
-    let topTarget = null, topTargetCount = 0;
+    let topTarget = null;
+    let topTargetCount = 0;
     st.forEach((count, target) => {
-      if (count > topTargetCount) { topTarget = target; topTargetCount = count; }
+      if (count > topTargetCount) {
+        topTarget = target;
+        topTargetCount = count;
+      }
     });
 
-    stats.set(country, { totalReceived, totalSent, topAttacker, topAttackerCount, topTarget, topTargetCount });
+    stats.set(country, {
+      totalReceived,
+      totalSent,
+      topAttacker,
+      topAttackerCount,
+      topTarget,
+      topTargetCount
+    });
   });
 
   return stats;
@@ -829,7 +1077,8 @@ function renderWorldMap() {
     if (!from || !to) return;
     const [x1, y1] = from;
     const [x2, y2] = to;
-    const dx = x2 - x1, dy = y2 - y1;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
     const len = Math.sqrt(dx * dx + dy * dy);
     if (len < 2) return;
 
@@ -916,7 +1165,8 @@ function renderWorldMap() {
     .attr("stroke-width", 0.4)
     .attr("d", path);
 
-  const legendW = 130, legendH = 10;
+  const legendW = 130;
+  const legendH = 10;
   const lx = width - legendW - 18;
   const ly = height - 44;
 
@@ -994,13 +1244,6 @@ function updateFilterUI() {
       ? `${syncLabel} · This view complements the time and country perspectives.`
       : "Hover for exact values. This view complements the time and country perspectives.";
   }
-
-  const relStatus = document.getElementById("relationships-status");
-  if (relStatus) {
-    relStatus.textContent = syncLabel
-      ? `${syncLabel} · Click a country in Section 2 or a pair here for more detail.`
-      : "Click a country in Section 2 to focus this chart, or click a pair here for more detail.";
-  }
 }
 
 function renderAll() {
@@ -1018,6 +1261,7 @@ function renderAll() {
     const shells = ["targets-chart", "initiators-chart", "relationships-chart"]
       .map(id => document.getElementById(id)?.closest(".chart-shell"))
       .filter(Boolean);
+
     shells.forEach(s => s.classList.remove("sync-flash"));
     void document.body.offsetWidth;
     shells.forEach(s => {
@@ -1025,6 +1269,33 @@ function renderAll() {
       s.addEventListener("animationend", () => s.classList.remove("sync-flash"), { once: true });
     });
   }
+}
+
+function initScrollSpy() {
+  const links = [...document.querySelectorAll(".nav a")];
+  const sections = links
+    .map(link => document.querySelector(link.getAttribute("href")))
+    .filter(Boolean);
+
+  const observer = new IntersectionObserver(
+    entries => {
+      const visible = entries.find(entry => entry.isIntersecting);
+      if (!visible) return;
+
+      const currentId = `#${visible.target.id}`;
+      links.forEach(link => {
+        const active = link.getAttribute("href") === currentId;
+        link.style.background = active ? "var(--surface-alt)" : "";
+        link.style.color = active ? "var(--text)" : "";
+      });
+    },
+    {
+      rootMargin: "-40% 0px -45% 0px",
+      threshold: 0
+    }
+  );
+
+  sections.forEach(section => observer.observe(section));
 }
 
 async function init() {
@@ -1042,11 +1313,13 @@ async function init() {
     document.getElementById("reset-filters").addEventListener("click", () => {
       state.yearRange = [PROJECT_YEAR_MIN, PROJECT_YEAR_MAX];
       state.selectedCountry = null;
+      state.selectedRelationship = null;
       renderAll();
     });
 
     document.getElementById("clear-country").addEventListener("click", () => {
       state.selectedCountry = null;
+      state.selectedRelationship = null;
       renderAll();
     });
 
@@ -1060,7 +1333,10 @@ async function init() {
     });
 
     d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
-      .then(world => { worldData = world; renderWorldMap(); })
+      .then(world => {
+        worldData = world;
+        renderWorldMap();
+      })
       .catch(() => {
         const el = document.getElementById("world-map-chart");
         if (el) el.innerHTML = `<p style="color:${MUTED};padding:12px 0;">Map data unavailable.</p>`;
