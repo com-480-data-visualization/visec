@@ -175,7 +175,7 @@ function buildTargetData() {
   const values = [];
 
   rows.forEach(row => {
-    row.targetCountries.forEach(country => values.push(country));
+    [...new Set(row.targetCountries)].forEach(country => values.push(country));
   });
 
   return Array.from(countBy(values), ([label, count]) => ({ label, count }))
@@ -300,7 +300,7 @@ function renderMetrics() {
   const countryRows = getCountryFilteredIncidents();
 
   const uniqueCountries = new Set();
-  timeRows.forEach(row => row.targetCountries.forEach(c => uniqueCountries.add(c)));
+  timeRows.forEach(row => [...new Set(row.targetCountries)].forEach(c => uniqueCountries.add(c)));
 
   const timeline = buildTimelineSeries().filter(
     d => d.year >= state.yearRange[0] && d.year <= state.yearRange[1]
@@ -312,28 +312,41 @@ function renderMetrics() {
     {
       label: "Time window",
       value: `${state.yearRange[0]}–${state.yearRange[1]}`,
-      caption: "Controlled with the timeline brush."
+      caption: "Adjust with the timeline below."
     },
     {
       label: "Incidents in window",
       value: timeRows.length.toLocaleString(),
-      caption: "Counted directly from the refactored CSV."
+      caption: "Total incidents in the selected period."
     },
-    {
-      label: "Target countries",
-      value: uniqueCountries.size.toLocaleString(),
-      caption: "Distinct target countries in the selected years."
-    },
+    state.selectedCountry
+      ? (() => {
+          const attackers = new Set(
+            timeRows
+              .filter(row => row.targetCountries.includes(state.selectedCountry))
+              .flatMap(row => row.initiatorCountries)
+          );
+          return {
+            label: "Attacking countries",
+            value: attackers.size.toLocaleString(),
+            caption: `Distinct countries that targeted ${state.selectedCountry} in this period.`
+          };
+        })()
+      : {
+          label: "Target countries",
+          value: uniqueCountries.size.toLocaleString(),
+          caption: "Distinct countries targeted in the selected period."
+        },
     state.selectedCountry
       ? {
           label: "Focus country",
           value: state.selectedCountry,
-          caption: `${countryRows.length.toLocaleString()} incidents target this country in the selected years.`
+          caption: `${countryRows.length.toLocaleString()} incidents involve this country in the selected period.`
         }
       : {
           label: "Peak year",
           value: String(peak.year),
-          caption: `${peak.count.toLocaleString()} incidents in the selected time window.`
+          caption: `${peak.count.toLocaleString()} incidents recorded that year.`
         }
   ];
 
@@ -655,7 +668,7 @@ function renderBarChart(containerId, data, color, options = {}) {
 function renderTargetsChart() {
   const data = buildTargetData();
 
-  renderBarChart("targets-chart", data, ACCENT, {
+  renderBarChart("targets-chart", data, "#0e7c6e", {
     selectedKey: state.selectedCountry,
     clickable: true,
     marginLeft: 160,
@@ -679,16 +692,48 @@ function renderTypesChart() {
   });
 }
 
+function updateTypesDetail() {
+  const el = document.getElementById("types-detail");
+  if (!el) return;
+
+  if (!state.selectedCountry) {
+    el.innerHTML = `<span style="color:var(--muted)">Select a country from the chart above to see its incident type breakdown.</span>`;
+    return;
+  }
+
+  const [start, end] = state.yearRange;
+  const data = buildTypeData();
+
+  if (!data.length) {
+    el.innerHTML = `<span style="color:var(--muted)">No incident-type data for ${state.selectedCountry} in this period.</span>`;
+    return;
+  }
+
+  const top = data[0];
+  const total = data.reduce((s, d) => s + d.count, 0);
+
+  let html = `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Showing data for ${start}–${end}</div>`;
+  html += `When targeted, <strong>${state.selectedCountry}</strong> was most often hit with <strong>${top.label}</strong> — ${top.count.toLocaleString()} incidents`;
+  if (total > 0) html += ` (${Math.round(top.count / total * 100)}% of all types recorded against this country)`;
+  html += `.`;
+  if (data[1]) html += ` Next: <strong>${data[1].label}</strong> (${data[1].count.toLocaleString()})`;
+  if (data[2]) html += ` and <strong>${data[2].label}</strong> (${data[2].count.toLocaleString()})`;
+  html += `.`;
+
+  el.innerHTML = html;
+}
+
 function updateCountryDetail() {
   const el = document.getElementById("country-detail");
   if (!el) return;
 
   if (!state.selectedCountry) {
-    el.textContent = "Click a country bar to keep it selected and update the relationships chart.";
+    el.innerHTML = `<span style="color:var(--muted)">Select a country from the chart to see its detailed breakdown.</span>`;
     return;
   }
 
   const country = state.selectedCountry;
+  const [start, end] = state.yearRange;
   const { incoming, outgoing } = buildCountryRelationshipSides(country);
   const rows = getTimeFilteredIncidents();
 
@@ -698,8 +743,8 @@ function updateCountryDetail() {
   const topAttacker = incoming[0];
   const topTarget = outgoing[0];
 
-  let html = `<strong>${country}</strong> appears as a target in <strong>${targetedCount.toLocaleString()}</strong> incidents`;
-  html += ` and as an initiator in <strong>${initiatedCount.toLocaleString()}</strong> incidents.`;
+  let html = `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Showing data for ${start}–${end}</div>`;
+  html += `<strong>${country}</strong> was targeted in <strong>${targetedCount.toLocaleString()}</strong> incidents and appears as an initiator in <strong>${initiatedCount.toLocaleString()}</strong> incidents.`;
 
   if (topAttacker) {
     html += `<br>Main attacker: <strong>${topAttacker.label}</strong> (${topAttacker.count.toLocaleString()})`;
@@ -716,31 +761,14 @@ function updateRelationshipDetail() {
   const el = document.getElementById("relationship-detail");
   if (!el) return;
 
-  if (!state.selectedRelationship) {
-    if (state.selectedCountry) {
-      el.innerHTML = `Click a bar on the left to see <strong>who attacks ${state.selectedCountry}</strong>, or a bar on the right to see <strong>who ${state.selectedCountry} attacks</strong>.`;
-    } else {
-      el.textContent = "Click a relationship bar to display the currently selected pair.";
-    }
+  const [start, end] = state.yearRange;
+
+  if (!state.selectedCountry) {
+    el.innerHTML = `<strong>Interaction:</strong> Select a country in Section 2 to split this chart — who attacks it on the left, who it attacks on the right.`;
     return;
   }
 
-  const rel = state.selectedRelationship;
-
-  if (rel.direction === "global") {
-    const [from, to] = rel.label.split(" → ");
-    el.innerHTML = `<strong>${from}</strong> → <strong>${to}</strong> appears in <strong>${rel.count.toLocaleString()}</strong> incidents in the selected time window.`;
-    return;
-  }
-
-  if (rel.direction === "incoming") {
-    el.innerHTML = `<strong>${rel.label}</strong> attacks <strong>${state.selectedCountry}</strong> in <strong>${rel.count.toLocaleString()}</strong> incidents in the selected time window.`;
-    return;
-  }
-
-  if (rel.direction === "outgoing") {
-    el.innerHTML = `<strong>${state.selectedCountry}</strong> attacks <strong>${rel.label}</strong> in <strong>${rel.count.toLocaleString()}</strong> incidents in the selected time window.`;
-  }
+  el.innerHTML = `<strong>Timeline:</strong> Currently showing <strong>${start}–${end}</strong>. Use the Section 1 brush to zoom in and see how <strong>${state.selectedCountry}</strong>'s relationships shift across different periods.`;
 }
 
 function renderCountryRelationshipView(containerId, country) {
@@ -791,39 +819,13 @@ function renderCountryRelationshipView(containerId, country) {
   wrapper.appendChild(outgoingPanel);
   container.appendChild(wrapper);
 
-  renderBarChart("relationships-incoming-chart", incoming, ACCENT3, {
-    selectedKey:
-      state.selectedRelationship?.direction === "incoming"
-        ? state.selectedRelationship.label
-        : null,
-    clickable: true,
+  renderBarChart("relationships-incoming-chart", incoming, "#e63946", {
     marginLeft: 130,
-    onClick: d => {
-      state.selectedRelationship = {
-        direction: "incoming",
-        label: d.label,
-        count: d.count
-      };
-      renderRelationshipsChart();
-    },
     emptyMessage: `No incoming attacker data for ${country} in the selected years.`
   });
 
-  renderBarChart("relationships-outgoing-chart", outgoing, ACCENT, {
-    selectedKey:
-      state.selectedRelationship?.direction === "outgoing"
-        ? state.selectedRelationship.label
-        : null,
-    clickable: true,
+  renderBarChart("relationships-outgoing-chart", outgoing, "#f4a261", {
     marginLeft: 130,
-    onClick: d => {
-      state.selectedRelationship = {
-        direction: "outgoing",
-        label: d.label,
-        count: d.count
-      };
-      renderRelationshipsChart();
-    },
     emptyMessage: `No outgoing target data for ${country} in the selected years.`
   });
 }
@@ -841,9 +843,7 @@ function renderRelationshipsChart() {
       title.textContent = "Most frequent cyber incident relationships";
     }
 
-    if (status) {
-      status.textContent = "Click a country in Section 2 to split this view into incoming vs outgoing relationships.";
-    }
+    if (status) status.textContent = "";
 
     const data = buildGlobalPairData();
 
@@ -856,36 +856,22 @@ function renderRelationshipsChart() {
       state.selectedRelationship = null;
     }
 
-    renderBarChart("relationships-chart", data, ACCENT3, {
-      selectedKey:
-        state.selectedRelationship?.direction === "global"
-          ? state.selectedRelationship.label
-          : null,
-      clickable: true,
+    renderBarChart("relationships-chart", data, "#e63946", {
       marginLeft: 210,
-      onClick: d => {
-        state.selectedRelationship = {
-          direction: "global",
-          label: d.label,
-          count: d.count
-        };
-        renderRelationshipsChart();
-      },
       emptyMessage: "No relationship data available."
     });
   } else {
     if (title) {
-      title.textContent = `Attack relationships for ${state.selectedCountry}`;
+      title.textContent = "Most frequent cyber incident relationships";
     }
 
-    if (status) {
-      status.textContent = `Left: who attacks ${state.selectedCountry} · Right: who ${state.selectedCountry} attacks.`;
-    }
+    if (status) status.textContent = "";
 
     renderCountryRelationshipView("relationships-chart", state.selectedCountry);
   }
 
   updateCountryDetail();
+  updateTypesDetail();
   updateRelationshipDetail();
 }
 
@@ -1334,29 +1320,20 @@ function updateFilterUI() {
   updateFilterChip("fc-map",      true,  false);
 
   const timelineStatus = document.getElementById("timeline-status");
-  if (timelineStatus) {
-    timelineStatus.textContent = timeFiltered
-      ? `Showing ${start}–${end} · All other charts are synchronized to this window.`
-      : "Brush the overview chart to zoom into a time window.";
-  }
-
-  const syncParts = [];
-  if (timeFiltered) syncParts.push(`${start}–${end}`);
-  if (countryFiltered) syncParts.push(state.selectedCountry);
-  const syncLabel = syncParts.length ? `Synced to: ${syncParts.join(" · ")}` : null;
+  if (timelineStatus) timelineStatus.textContent = "";
 
   const targetsStatus = document.getElementById("targets-status");
   if (targetsStatus) {
-    targetsStatus.textContent = syncLabel
-      ? `${syncLabel} · Hover for values · Click a country to filter.`
-      : "Hover for exact values. Click a country to filter the relationships chart.";
+    targetsStatus.textContent = countryFiltered
+      ? ""
+      : "Click a bar to filter by country.";
   }
 
   const typesStatus = document.getElementById("types-status");
   if (typesStatus) {
-    typesStatus.textContent = syncLabel
-      ? `${syncLabel} · This view complements the time and country perspectives.`
-      : "Hover for exact values. This view complements the time and country perspectives.";
+    typesStatus.textContent = countryFiltered
+      ? `Filtered to incidents involving ${state.selectedCountry}`
+      : "";
   }
 }
 
