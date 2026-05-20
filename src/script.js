@@ -68,6 +68,8 @@ const state = {
   selectedRelationship: null
 };
 
+const animatedSections = new Set();
+
 const countryAliases = {
   "Korea, Republic of": "South Korea",
   "Korea, Democratic People's Republic of": "North Korea",
@@ -1338,6 +1340,7 @@ function updateFilterUI() {
 }
 
 function renderAll() {
+  ['targets', 'initiators', 'relationships'].forEach(id => animatedSections.add(id));
   updateFilterUI();
   renderMetrics();
   renderTimeline();
@@ -1387,6 +1390,30 @@ function initScrollSpy() {
   );
 
   sections.forEach(section => observer.observe(section));
+}
+
+function initScrollAnimations() {
+  const renderMap = {
+    'targets':       renderTargetsChart,
+    'initiators':    renderTypesChart,
+    'relationships': renderRelationshipsChart
+  };
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const id = entry.target.id;
+      if (animatedSections.has(id)) return;
+      animatedSections.add(id);
+      const fn = renderMap[id];
+      if (fn) fn();
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+
+  Object.keys(renderMap).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) observer.observe(el);
+  });
 }
 
 function getAllCountriesInData() {
@@ -1461,7 +1488,10 @@ async function init() {
     initCountrySearch();
 
     initScrollSpy();
-    renderAll();
+    updateFilterUI();
+    renderMetrics();
+    renderTimeline();
+    initScrollAnimations();
 
     let resizeTimer;
     window.addEventListener("resize", () => {
