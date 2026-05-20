@@ -1202,6 +1202,117 @@ function renderWorldMap() {
     .style("font-family", "Inter, sans-serif");
 }
 
+function buildFilterDropdownHTML(activeFilters) {
+  let html = '<div class="fdd-title">Active filters</div>';
+
+  activeFilters.forEach(f => {
+    html += `
+      <div class="fdd-tag">
+        <div>
+          <div class="fdd-tag-type">${f.typeLabel}</div>
+          <div class="fdd-tag-value">${f.label}</div>
+        </div>
+        <button class="fdd-remove" data-reset="${f.type}" type="button" aria-label="Remove ${f.typeLabel} filter">×</button>
+      </div>`;
+  });
+
+  if (activeFilters.length > 1) {
+    html += '<button class="fdd-reset-all" data-reset="all" type="button">Reset all filters</button>';
+  }
+
+  return html;
+}
+
+function updateFilterChip(chipId, timeRelevant, countryRelevant) {
+  const wrap = document.getElementById(chipId);
+  if (!wrap) return;
+
+  const [start, end] = state.yearRange;
+  const timeFiltered = start !== PROJECT_YEAR_MIN || end !== PROJECT_YEAR_MAX;
+  const countryFiltered = !!state.selectedCountry;
+
+  const activeFilters = [];
+  if (timeRelevant && timeFiltered) {
+    activeFilters.push({ type: "time", typeLabel: "Time window", label: `${start}–${end}` });
+  }
+  if (countryRelevant && countryFiltered) {
+    activeFilters.push({ type: "country", typeLabel: "Country", label: state.selectedCountry });
+  }
+
+  if (activeFilters.length === 0) {
+    wrap.hidden = true;
+    const dd = wrap.querySelector(".filter-dropdown");
+    if (dd) dd.hidden = true;
+    wrap.classList.remove("is-open");
+    const btn = wrap.querySelector(".filter-chip-btn");
+    if (btn) btn.setAttribute("aria-expanded", "false");
+    return;
+  }
+
+  wrap.hidden = false;
+
+  const summary = wrap.querySelector(".filter-chip-summary");
+  if (summary) summary.textContent = activeFilters.map(f => f.label).join(" · ");
+
+  const inner = wrap.querySelector(".filter-dropdown-inner");
+  if (inner) inner.innerHTML = buildFilterDropdownHTML(activeFilters);
+}
+
+function initFilterChips() {
+  const chipIds = ["fc-timeline", "fc-targets", "fc-types", "fc-rels", "fc-map"];
+
+  function closeAll() {
+    chipIds.forEach(id => {
+      const wrap = document.getElementById(id);
+      if (!wrap) return;
+      const dd = wrap.querySelector(".filter-dropdown");
+      if (dd) dd.hidden = true;
+      wrap.classList.remove("is-open");
+      const btn = wrap.querySelector(".filter-chip-btn");
+      if (btn) btn.setAttribute("aria-expanded", "false");
+    });
+  }
+
+  chipIds.forEach(id => {
+    const wrap = document.getElementById(id);
+    if (!wrap) return;
+
+    const btn = wrap.querySelector(".filter-chip-btn");
+    const dropdown = wrap.querySelector(".filter-dropdown");
+
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const isOpen = !dropdown.hidden;
+      closeAll();
+      if (!isOpen) {
+        dropdown.hidden = false;
+        wrap.classList.add("is-open");
+        btn.setAttribute("aria-expanded", "true");
+      }
+    });
+
+    wrap.addEventListener("click", e => {
+      const resetBtn = e.target.closest("[data-reset]");
+      if (!resetBtn) return;
+
+      const type = resetBtn.dataset.reset;
+      if (type === "time" || type === "all") {
+        state.yearRange = [PROJECT_YEAR_MIN, PROJECT_YEAR_MAX];
+        state.selectedRelationship = null;
+      }
+      if (type === "country" || type === "all") {
+        state.selectedCountry = null;
+        state.selectedRelationship = null;
+      }
+
+      closeAll();
+      renderAll();
+    });
+  });
+
+  document.addEventListener("click", closeAll);
+}
+
 function updateFilterUI() {
   const [start, end] = state.yearRange;
   const timeFiltered = start !== PROJECT_YEAR_MIN || end !== PROJECT_YEAR_MAX;
@@ -1216,8 +1327,11 @@ function updateFilterUI() {
     countryPill.classList.toggle("is-muted", !countryFiltered);
   }
 
-  const clearCountryBtn = document.getElementById("clear-country");
-  if (clearCountryBtn) clearCountryBtn.hidden = !countryFiltered;
+  updateFilterChip("fc-timeline", true,  false);
+  updateFilterChip("fc-targets",  true,  true);
+  updateFilterChip("fc-types",    true,  true);
+  updateFilterChip("fc-rels",     true,  true);
+  updateFilterChip("fc-map",      true,  false);
 
   const timelineStatus = document.getElementById("timeline-status");
   if (timelineStatus) {
@@ -1317,11 +1431,7 @@ async function init() {
       renderAll();
     });
 
-    document.getElementById("clear-country").addEventListener("click", () => {
-      state.selectedCountry = null;
-      state.selectedRelationship = null;
-      renderAll();
-    });
+    initFilterChips();
 
     initScrollSpy();
     renderAll();

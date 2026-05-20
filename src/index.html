@@ -11,6 +11,20 @@
 <body>
   <div id="live-region" class="sr-only" aria-live="polite"></div>
 
+  <svg hidden aria-hidden="true">
+    <defs>
+      <symbol id="icon-filter" viewBox="0 0 16 16">
+        <line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="4" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <line x1="6" y1="12" x2="10" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="icon-chevron" viewBox="0 0 16 16">
+        <polyline fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" points="3,6 8,11 13,6"/>
+      </symbol>
+    </defs>
+  </svg>
+
   <header class="topbar">
     <div class="container topbar-inner">
       <div class="brand">Global Cyber Incident Patterns</div>
@@ -148,6 +162,16 @@
                   Brush the overview chart to zoom into a time window.
                 </div>
               </div>
+              <div class="filter-chip-wrap" id="fc-timeline" hidden>
+                <button class="filter-chip-btn" type="button" aria-expanded="false" aria-haspopup="true">
+                  <svg width="11" height="11" aria-hidden="true"><use href="#icon-filter"/></svg>
+                  <span class="filter-chip-summary"></span>
+                  <svg class="filter-chevron" width="8" height="8" aria-hidden="true"><use href="#icon-chevron"/></svg>
+                </button>
+                <div class="filter-dropdown" hidden>
+                  <div class="filter-dropdown-inner"></div>
+                </div>
+              </div>
             </div>
             <div id="evolution-chart"></div>
           </div>
@@ -187,9 +211,16 @@
                   Hover for exact values. Click a country to filter the relationships chart.
                 </div>
               </div>
-              <button id="clear-country" class="text-button" type="button" hidden>
-                Clear country
-              </button>
+              <div class="filter-chip-wrap" id="fc-targets" hidden>
+                <button class="filter-chip-btn" type="button" aria-expanded="false" aria-haspopup="true">
+                  <svg width="11" height="11" aria-hidden="true"><use href="#icon-filter"/></svg>
+                  <span class="filter-chip-summary"></span>
+                  <svg class="filter-chevron" width="8" height="8" aria-hidden="true"><use href="#icon-chevron"/></svg>
+                </button>
+                <div class="filter-dropdown" hidden>
+                  <div class="filter-dropdown-inner"></div>
+                </div>
+              </div>
             </div>
 
             <div id="targets-chart"></div>
@@ -237,6 +268,16 @@
                   Hover for exact values. This view complements the time and country perspectives.
                 </div>
               </div>
+              <div class="filter-chip-wrap" id="fc-types" hidden>
+                <button class="filter-chip-btn" type="button" aria-expanded="false" aria-haspopup="true">
+                  <svg width="11" height="11" aria-hidden="true"><use href="#icon-filter"/></svg>
+                  <span class="filter-chip-summary"></span>
+                  <svg class="filter-chevron" width="8" height="8" aria-hidden="true"><use href="#icon-chevron"/></svg>
+                </button>
+                <div class="filter-dropdown" hidden>
+                  <div class="filter-dropdown-inner"></div>
+                </div>
+              </div>
             </div>
             <div id="initiators-chart"></div>
           </div>
@@ -276,6 +317,16 @@
                 </div>
                 <div class="chart-subtitle" id="relationships-status">
                   Click a country in Section 2 to focus this chart, or click a pair here for more detail.
+                </div>
+              </div>
+              <div class="filter-chip-wrap" id="fc-rels" hidden>
+                <button class="filter-chip-btn" type="button" aria-expanded="false" aria-haspopup="true">
+                  <svg width="11" height="11" aria-hidden="true"><use href="#icon-filter"/></svg>
+                  <span class="filter-chip-summary"></span>
+                  <svg class="filter-chevron" width="8" height="8" aria-hidden="true"><use href="#icon-chevron"/></svg>
+                </button>
+                <div class="filter-dropdown" hidden>
+                  <div class="filter-dropdown-inner"></div>
                 </div>
               </div>
             </div>
@@ -335,6 +386,16 @@
             <div>
               <div class="chart-title">Global cyber attack flow map</div>
               <div class="chart-subtitle">Shading = incidents received · Hover a country for attack flow arrows</div>
+            </div>
+            <div class="filter-chip-wrap" id="fc-map" hidden>
+              <button class="filter-chip-btn" type="button" aria-expanded="false" aria-haspopup="true">
+                <svg width="11" height="11" aria-hidden="true"><use href="#icon-filter"/></svg>
+                <span class="filter-chip-summary"></span>
+                <svg class="filter-chevron" width="8" height="8" aria-hidden="true"><use href="#icon-chevron"/></svg>
+              </button>
+              <div class="filter-dropdown" hidden>
+                <div class="filter-dropdown-inner"></div>
+              </div>
             </div>
           </div>
           <div id="world-map-chart"></div>

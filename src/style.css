@@ -398,6 +398,129 @@ h1 {
   margin-bottom: 10px;
 }
 
+.filter-chip-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.filter-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface-alt);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 2px 8px 2px 7px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.filter-chip-btn:hover {
+  background: var(--line);
+  color: var(--text);
+}
+
+.filter-chevron {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+.filter-chip-wrap.is-open .filter-chevron {
+  transform: rotate(180deg);
+}
+
+.filter-dropdown {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(24, 33, 43, 0.13);
+  padding: 10px;
+  min-width: 210px;
+  z-index: 40;
+}
+
+.fdd-title {
+  font-size: 0.73rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 2px 4px 8px;
+}
+
+.fdd-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 9px;
+  background: var(--surface-alt);
+  border: 1px solid var(--line);
+  margin-bottom: 6px;
+}
+
+.fdd-tag-type {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.fdd-tag-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 1px;
+}
+
+.fdd-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 1rem;
+  line-height: 1;
+  transition: color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.fdd-remove:hover {
+  color: var(--accent-2);
+  background: rgba(140, 47, 57, 0.09);
+}
+
+.fdd-reset-all {
+  width: 100%;
+  margin-top: 2px;
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 9px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: center;
+  transition: background 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+}
+
+.fdd-reset-all:hover {
+  background: var(--surface-alt);
+  color: var(--text);
+}
+
 .chart-title {
   font-size: 0.98rem;
   font-weight: 700;
@@ -433,7 +556,27 @@ svg {
   width: 100%;
   height: auto;
   display: block;
+  overflow: hidden;
+}
+
+#evolution-chart svg,
+#targets-chart svg,
+#initiators-chart svg,
+#relationships-chart svg,
+#world-map-chart svg {
   overflow: visible;
+}
+
+.filter-chip-btn svg {
+  width: 11px;
+  height: 11px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.filter-chip-btn .filter-chevron {
+  width: 8px;
+  height: 8px;
 }
 
 #evolution-chart svg,
