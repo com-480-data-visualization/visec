@@ -1389,6 +1389,55 @@ function initScrollSpy() {
   sections.forEach(section => observer.observe(section));
 }
 
+function getAllCountriesInData() {
+  const set = new Set();
+  incidents.forEach(row => row.targetCountries.forEach(c => set.add(c)));
+  return [...set].sort();
+}
+
+function initCountrySearch() {
+  const input = document.getElementById("country-search");
+  const dropdown = document.getElementById("country-search-dropdown");
+  if (!input || !dropdown) return;
+
+  const allCountries = getAllCountriesInData();
+
+  input.addEventListener("input", function() {
+    const q = this.value.trim().toLowerCase();
+    if (!q) { dropdown.hidden = true; return; }
+
+    const matches = allCountries.filter(c => c.toLowerCase().includes(q)).slice(0, 12);
+    if (!matches.length) { dropdown.hidden = true; return; }
+
+    dropdown.innerHTML = "";
+    matches.forEach(c => {
+      const item = document.createElement("div");
+      item.className = "csd-item" + (state.selectedCountry === c ? " is-active" : "");
+      item.dataset.country = c;
+      item.textContent = c;
+      dropdown.appendChild(item);
+    });
+    dropdown.hidden = false;
+  });
+
+  dropdown.addEventListener("click", function(e) {
+    const item = e.target.closest(".csd-item");
+    if (!item) return;
+    const country = item.dataset.country;
+    state.selectedCountry = state.selectedCountry === country ? null : country;
+    state.selectedRelationship = null;
+    input.value = "";
+    dropdown.hidden = true;
+    renderAll();
+  });
+
+  document.addEventListener("click", function(e) {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.hidden = true;
+    }
+  });
+}
+
 async function init() {
   try {
     const rows = await d3.csv(DATA_PATH);
@@ -1409,6 +1458,7 @@ async function init() {
     });
 
     initFilterChips();
+    initCountrySearch();
 
     initScrollSpy();
     renderAll();
