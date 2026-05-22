@@ -65,7 +65,43 @@ let incidents = [];
 const state = {
   yearRange: [PROJECT_YEAR_MIN, PROJECT_YEAR_MAX],
   selectedCountry: null,
-  selectedRelationship: null
+  selectedRelationship: null,
+  selectedIncidentType: null
+};
+
+// Notable real-world cyber incidents marked on the timeline.
+// Each one captures a moment that visibly contributed to the surrounding spike.
+const TIMELINE_EVENTS = [
+  { year: 2010, short: "Stuxnet",        label: "Stuxnet revealed",      detail: "The first widely reported state-grade industrial malware. Reshaped what \"cyber operation\" was understood to mean." },
+  { year: 2014, short: "Sony Pictures",  label: "Sony Pictures hack",    detail: "High-profile destructive intrusion attributed to North Korea — a pivotal year for state attribution." },
+  { year: 2017, short: "WannaCry",       label: "WannaCry + NotPetya",   detail: "Two global disruption campaigns within months. State-grade exploits leaked into the wild." },
+  { year: 2020, short: "SolarWinds",     label: "SolarWinds supply chain", detail: "A software-supply-chain compromise affecting U.S. federal agencies; widened the recorded incident category." },
+  { year: 2021, short: "Colonial",       label: "Colonial Pipeline",     detail: "Ransomware shutdown of critical fuel infrastructure — pushed cyber into mainstream political discourse." },
+  { year: 2022, short: "Ukraine war",    label: "Russia–Ukraine cyber front", detail: "Continuous operations against Ukrainian infrastructure and Western allies through 2022–2024." },
+  { year: 2023, short: "MOVEit",         label: "MOVEit mass exploit",   detail: "A single vulnerability used to compromise thousands of organizations; large boost to recorded data-theft incidents." }
+];
+
+// Short, readable labels for the verbose EuRepoC category strings.
+const SECTOR_LABEL_MAP = {
+  "Critical infrastructure":                    "Critical infrastructure",
+  "State institutions / political system":      "State / political",
+  "Corporate Targets (corporate targets only coded if the respective company is not part of the critical infrastructure definition)": "Corporate",
+  "Social groups":                              "Social groups",
+  "Media":                                      "Media",
+  "Education":                                  "Education",
+  "End user(s) / specially protected groups":   "End users",
+  "International / supranational organization": "Intl. organizations",
+  "Science":                                    "Science"
+};
+
+const ACTOR_LABEL_MAP = {
+  "Non-state-group":                                  "Non-state group",
+  "Non-state actor, state-affiliation suggested":     "State-affiliated",
+  "State":                                            "State",
+  "Unknown - not attributed":                         "Unattributed",
+  "not attributed":                                   "Unattributed",
+  "Individual hacker(s)":                             "Individual hacker",
+  "Other":                                            "Other"
 };
 
 const animatedSections = new Set();
@@ -112,6 +148,18 @@ function splitValues(value, { normalize = false, keepDuplicates = true } = {}) {
   return keepDuplicates ? parts : [...new Set(parts)];
 }
 
+// Split a raw category value on both " - " (EuRepoC's multi-target separator)
+// and ";", apply an optional label map, and drop empties.
+function splitCategories(value, labelMap) {
+  if (value === null || value === undefined) return [];
+  return String(value)
+    .split(/;| - /)
+    .map(d => d.trim())
+    .filter(d => d && !MISSING_VALUES.has(d))
+    .map(d => (labelMap && labelMap[d]) ? labelMap[d] : d)
+    .filter(d => d && !MISSING_VALUES.has(d));
+}
+
 function buildIncident(row, index) {
   const year = parseYear(row.start_date);
   if (!year || year < PROJECT_YEAR_MIN || year > PROJECT_YEAR_MAX) return null;
@@ -130,13 +178,19 @@ function buildIncident(row, index) {
     initiatorCountries: splitValues(row.initiator_country, {
       normalize: true,
       keepDuplicates: false
-    })
+    }),
+    targetSectors:     [...new Set(splitCategories(row.receiver_category, SECTOR_LABEL_MAP))],
+    initiatorActors:   [...new Set(splitCategories(row.initiator_category, ACTOR_LABEL_MAP))]
   };
 }
 
 function getTimeFilteredIncidents() {
   const [start, end] = state.yearRange;
-  return incidents.filter(d => d.year >= start && d.year <= end);
+  let rows = incidents.filter(d => d.year >= start && d.year <= end);
+  if (state.selectedIncidentType) {
+    rows = rows.filter(d => d.incidentTypes.includes(state.selectedIncidentType));
+  }
+  return rows;
 }
 
 function getCountryFilteredIncidents() {
@@ -186,9 +240,15 @@ function buildTargetData() {
 }
 
 function buildTypeData() {
-  const rows = getCountryFilteredIncidents();
-  const values = [];
+  // Apply time + country, but NOT the incident-type filter itself —
+  // the chart needs to show ALL types so the user can pick a different one.
+  const [start, end] = state.yearRange;
+  let rows = incidents.filter(d => d.year >= start && d.year <= end);
+  if (state.selectedCountry) {
+    rows = rows.filter(d => d.targetCountries.includes(state.selectedCountry));
+  }
 
+  const values = [];
   rows.forEach(row => {
     row.incidentTypes.forEach(type => values.push(type));
   });
@@ -217,6 +277,26 @@ function buildGlobalPairData() {
   return Array.from(counts, ([label, count]) => ({ label, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 12);
+}
+
+// Aggregate target-sector counts from the currently filtered incidents.
+function buildSectorData() {
+  const rows = getCountryFilteredIncidents();
+  const values = [];
+  rows.forEach(row => row.targetSectors.forEach(s => values.push(s)));
+  return Array.from(countBy(values), ([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 9);
+}
+
+// Aggregate initiator-actor (state / non-state / etc.) counts.
+function buildActorData() {
+  const rows = getCountryFilteredIncidents();
+  const values = [];
+  rows.forEach(row => row.initiatorActors.forEach(a => values.push(a)));
+  return Array.from(countBy(values), ([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 7);
 }
 
 function buildCountryRelationshipSides(country) {
@@ -487,6 +567,75 @@ function renderTimeline() {
     .style("font-size", "0.82rem")
     .text("Number of incidents");
 
+  // -------- event annotations --------
+  const visibleEvents = TIMELINE_EVENTS.filter(
+    e => e.year >= state.yearRange[0] && e.year <= state.yearRange[1]
+  );
+
+  const eventsLayer = svg.append("g").attr("class", "event-annotations");
+
+  visibleEvents.forEach(evt => {
+    const xPos = xMain(evt.year);
+
+    // dashed vertical guideline
+    eventsLayer.append("line")
+      .attr("x1", xPos)
+      .attr("x2", xPos)
+      .attr("y1", 0)
+      .attr("y2", mainHeight)
+      .attr("stroke", ACCENT3)
+      .attr("stroke-width", 1)
+      .attr("stroke-dasharray", "3,3")
+      .attr("opacity", 0.55);
+
+    // small label tag at the top of the chart
+    const tag = eventsLayer.append("g")
+      .attr("transform", `translate(${xPos},${-4})`)
+      .style("cursor", "help");
+
+    // measure label width via a hidden text element
+    const tmp = tag.append("text")
+      .text(evt.short)
+      .style("font-size", "0.7rem")
+      .style("font-weight", "700")
+      .attr("visibility", "hidden");
+    const labelW = tmp.node().getComputedTextLength() + 14;
+    tmp.remove();
+
+    tag.append("rect")
+      .attr("x", -labelW / 2)
+      .attr("y", -14)
+      .attr("width", labelW)
+      .attr("height", 16)
+      .attr("rx", 8)
+      .attr("fill", ACCENT3)
+      .attr("opacity", 0.9);
+
+    tag.append("text")
+      .attr("text-anchor", "middle")
+      .attr("y", -3)
+      .attr("fill", "#fff")
+      .style("font-size", "0.7rem")
+      .style("font-weight", "700")
+      .style("font-family", "Inter, sans-serif")
+      .text(evt.short);
+
+    tag
+      .on("mouseover", function(event) {
+        showTooltip(
+          event,
+          `<strong>${evt.year} · ${evt.label}</strong><br>
+           <span style="opacity:0.85">${evt.detail}</span>`
+        );
+        d3.select(this).select("rect").attr("opacity", 1);
+      })
+      .on("mousemove", moveTooltip)
+      .on("mouseout", function() {
+        hideTooltip();
+        d3.select(this).select("rect").attr("opacity", 0.9);
+      });
+  });
+
   const context = svg.append("g")
     .attr("transform", `translate(0,${mainHeight + gap})`);
 
@@ -687,7 +836,14 @@ function renderTypesChart() {
   const data = buildTypeData();
 
   renderBarChart("initiators-chart", data, ACCENT2, {
+    selectedKey: state.selectedIncidentType,
+    clickable: true,
     marginLeft: 200,
+    onClick: d => {
+      state.selectedIncidentType = state.selectedIncidentType === d.label ? null : d.label;
+      state.selectedRelationship = null;
+      renderAll();
+    },
     emptyMessage: state.selectedCountry
       ? `No incident-type data for ${state.selectedCountry} in the selected years.`
       : "No incident-type data available."
@@ -1211,13 +1367,14 @@ function buildFilterDropdownHTML(activeFilters) {
   return html;
 }
 
-function updateFilterChip(chipId, timeRelevant, countryRelevant) {
+function updateFilterChip(chipId, timeRelevant, countryRelevant, typeRelevant) {
   const wrap = document.getElementById(chipId);
   if (!wrap) return;
 
   const [start, end] = state.yearRange;
   const timeFiltered = start !== PROJECT_YEAR_MIN || end !== PROJECT_YEAR_MAX;
   const countryFiltered = !!state.selectedCountry;
+  const typeFiltered = !!state.selectedIncidentType;
 
   const activeFilters = [];
   if (timeRelevant && timeFiltered) {
@@ -1225,6 +1382,9 @@ function updateFilterChip(chipId, timeRelevant, countryRelevant) {
   }
   if (countryRelevant && countryFiltered) {
     activeFilters.push({ type: "country", typeLabel: "Country", label: state.selectedCountry });
+  }
+  if (typeRelevant && typeFiltered) {
+    activeFilters.push({ type: "incidentType", typeLabel: "Incident type", label: state.selectedIncidentType });
   }
 
   if (activeFilters.length === 0) {
@@ -1247,7 +1407,7 @@ function updateFilterChip(chipId, timeRelevant, countryRelevant) {
 }
 
 function initFilterChips() {
-  const chipIds = ["fc-timeline", "fc-targets", "fc-types", "fc-rels", "fc-map"];
+  const chipIds = ["fc-timeline", "fc-targets", "fc-types", "fc-rels", "fc-sectors", "fc-map"];
 
   function closeAll() {
     chipIds.forEach(id => {
@@ -1292,6 +1452,9 @@ function initFilterChips() {
         state.selectedCountry = null;
         state.selectedRelationship = null;
       }
+      if (type === "incidentType" || type === "all") {
+        state.selectedIncidentType = null;
+      }
 
       closeAll();
       renderAll();
@@ -1305,6 +1468,7 @@ function updateFilterUI() {
   const [start, end] = state.yearRange;
   const timeFiltered = start !== PROJECT_YEAR_MIN || end !== PROJECT_YEAR_MAX;
   const countryFiltered = !!state.selectedCountry;
+  const typeFiltered = !!state.selectedIncidentType;
 
   const rangePill = document.getElementById("range-pill");
   if (rangePill) rangePill.textContent = `${start}–${end}`;
@@ -1315,44 +1479,104 @@ function updateFilterUI() {
     countryPill.classList.toggle("is-muted", !countryFiltered);
   }
 
-  updateFilterChip("fc-timeline", true,  false);
-  updateFilterChip("fc-targets",  true,  true);
-  updateFilterChip("fc-types",    true,  true);
-  updateFilterChip("fc-rels",     true,  true);
-  updateFilterChip("fc-map",      true,  false);
+  const typePill = document.getElementById("type-pill");
+  if (typePill) {
+    typePill.textContent = state.selectedIncidentType || "All types";
+    typePill.classList.toggle("is-muted", !typeFiltered);
+  }
+
+  updateFilterChip("fc-timeline", true,  false, false);
+  updateFilterChip("fc-targets",  true,  false, true);
+  updateFilterChip("fc-types",    true,  true,  false);
+  updateFilterChip("fc-rels",     true,  true,  true);
+  updateFilterChip("fc-sectors",  true,  true,  true);
+  updateFilterChip("fc-map",      true,  false, true);
 
   const timelineStatus = document.getElementById("timeline-status");
   if (timelineStatus) timelineStatus.textContent = "";
 
   const targetsStatus = document.getElementById("targets-status");
   if (targetsStatus) {
-    targetsStatus.textContent = countryFiltered
-      ? ""
-      : "Click a bar to filter by country.";
+    if (typeFiltered) {
+      targetsStatus.textContent = `Showing only ${state.selectedIncidentType} incidents.`;
+    } else if (!countryFiltered) {
+      targetsStatus.textContent = "Click a bar to filter by country.";
+    } else {
+      targetsStatus.textContent = "";
+    }
   }
 
   const typesStatus = document.getElementById("types-status");
   if (typesStatus) {
-    typesStatus.textContent = countryFiltered
-      ? `Filtered to incidents involving ${state.selectedCountry}`
-      : "";
+    const parts = [];
+    if (countryFiltered) parts.push(`Filtered to incidents involving ${state.selectedCountry}.`);
+    if (!typeFiltered) parts.push("Click a bar to filter every chart by that type.");
+    typesStatus.textContent = parts.join(" ");
   }
 }
 
+function renderSectorChart() {
+  const data = buildSectorData();
+  renderBarChart("sectors-chart", data, "#3d6b56", {
+    marginLeft: 170,
+    emptyMessage: "No target-sector data in the current selection."
+  });
+}
+
+function renderActorChart() {
+  const data = buildActorData();
+  renderBarChart("actors-chart", data, ACCENT3, {
+    marginLeft: 170,
+    emptyMessage: "No actor-category data in the current selection."
+  });
+}
+
+function updateSectorsDetail() {
+  const el = document.getElementById("sectors-detail");
+  if (!el) return;
+
+  const sectors = buildSectorData();
+  const actors  = buildActorData();
+  const [start, end] = state.yearRange;
+
+  if (!sectors.length && !actors.length) {
+    el.innerHTML = `<span style="color:var(--muted)">No data in this slice.</span>`;
+    return;
+  }
+
+  const totalSectors = sectors.reduce((s, d) => s + d.count, 0);
+  const totalActors  = actors.reduce((s, d) => s + d.count, 0);
+
+  let html = `<div style="font-size:0.78rem;color:var(--muted);margin-bottom:6px;">Showing data for ${start}–${end}${state.selectedCountry ? ` · ${state.selectedCountry}` : ""}${state.selectedIncidentType ? ` · ${state.selectedIncidentType}` : ""}</div>`;
+
+  if (sectors[0] && totalSectors) {
+    const top = sectors[0];
+    html += `Of the targeted sectors, <strong>${top.label}</strong> tops the list (${top.count.toLocaleString()} incidents, ${Math.round(top.count / totalSectors * 100)}% of recorded targets).`;
+  }
+  if (actors[0] && totalActors) {
+    const top = actors[0];
+    html += ` On the attacker side, <strong>${top.label}</strong> actors lead (${top.count.toLocaleString()} incidents, ${Math.round(top.count / totalActors * 100)}%).`;
+  }
+  el.innerHTML = html;
+}
+
 function renderAll() {
-  ['targets', 'initiators', 'relationships'].forEach(id => animatedSections.add(id));
+  ['targets', 'initiators', 'relationships', 'sectors-actors'].forEach(id => animatedSections.add(id));
   updateFilterUI();
   renderMetrics();
   renderTimeline();
   renderTargetsChart();
   renderTypesChart();
   renderRelationshipsChart();
+  renderSectorChart();
+  renderActorChart();
+  updateSectorsDetail();
   renderWorldMap();
 
   const [start, end] = state.yearRange;
-  const active = start !== PROJECT_YEAR_MIN || end !== PROJECT_YEAR_MAX || !!state.selectedCountry;
+  const active = start !== PROJECT_YEAR_MIN || end !== PROJECT_YEAR_MAX || !!state.selectedCountry || !!state.selectedIncidentType;
   if (active) {
-    const shells = ["targets-chart", "initiators-chart", "relationships-chart"]
+    const shells = ["targets-chart", "initiators-chart", "relationships-chart", "sectors-chart", "actors-chart"]
       .map(id => document.getElementById(id)?.closest(".chart-shell"))
       .filter(Boolean);
 
@@ -1365,38 +1589,12 @@ function renderAll() {
   }
 }
 
-function initScrollSpy() {
-  const links = [...document.querySelectorAll(".nav a")];
-  const sections = links
-    .map(link => document.querySelector(link.getAttribute("href")))
-    .filter(Boolean);
-
-  const observer = new IntersectionObserver(
-    entries => {
-      const visible = entries.find(entry => entry.isIntersecting);
-      if (!visible) return;
-
-      const currentId = `#${visible.target.id}`;
-      links.forEach(link => {
-        const active = link.getAttribute("href") === currentId;
-        link.style.background = active ? "var(--surface-alt)" : "";
-        link.style.color = active ? "var(--text)" : "";
-      });
-    },
-    {
-      rootMargin: "-40% 0px -45% 0px",
-      threshold: 0
-    }
-  );
-
-  sections.forEach(section => observer.observe(section));
-}
-
 function initScrollAnimations() {
   const renderMap = {
-    'targets':       renderTargetsChart,
-    'initiators':    renderTypesChart,
-    'relationships': renderRelationshipsChart
+    'targets':         renderTargetsChart,
+    'initiators':      renderTypesChart,
+    'relationships':   renderRelationshipsChart,
+    'sectors-actors':  () => { renderSectorChart(); renderActorChart(); updateSectorsDetail(); }
   };
 
   const observer = new IntersectionObserver(entries => {
@@ -1469,9 +1667,7 @@ async function init() {
   try {
     const rows = await d3.csv(DATA_PATH);
 
-    incidents = rows
-      .map(buildIncident)
-      .filter(Boolean);
+    incidents = rows.map(buildIncident).filter(Boolean);
 
     if (!incidents.length) {
       throw new Error("CSV loaded, but no usable rows were found.");
@@ -1481,16 +1677,22 @@ async function init() {
       state.yearRange = [PROJECT_YEAR_MIN, PROJECT_YEAR_MAX];
       state.selectedCountry = null;
       state.selectedRelationship = null;
+      state.selectedIncidentType = null;
       renderAll();
     });
 
     initFilterChips();
     initCountrySearch();
-
     initScrollSpy();
     updateFilterUI();
     renderMetrics();
     renderTimeline();
+    renderTargetsChart();
+    renderTypesChart();
+    renderRelationshipsChart();
+    renderSectorChart();
+    renderActorChart();
+    updateSectorsDetail();
     initScrollAnimations();
 
     let resizeTimer;
@@ -1500,10 +1702,7 @@ async function init() {
     });
 
     d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
-      .then(world => {
-        worldData = world;
-        renderWorldMap();
-      })
+      .then(world => { worldData = world; renderWorldMap(); })
       .catch(() => {
         const el = document.getElementById("world-map-chart");
         if (el) el.innerHTML = `<p style="color:${MUTED};padding:12px 0;">Map data unavailable.</p>`;
@@ -1511,25 +1710,10 @@ async function init() {
 
   } catch (error) {
     console.error("App error:", error);
-
-    const ids = [
-      "metrics",
-      "evolution-chart",
-      "targets-chart",
-      "initiators-chart",
-      "relationships-chart"
-    ];
-
+    const ids = ["metrics","evolution-chart","targets-chart","initiators-chart","relationships-chart","sectors-chart","actors-chart"];
     ids.forEach(id => {
       const el = document.getElementById(id);
-      if (el) {
-        el.innerHTML = `
-          <p style="color:#8c2f39;">
-            The CSV was found, but the visualization code crashed.
-            Open the browser console to see the exact JavaScript error.
-          </p>
-        `;
-      }
+      if (el) el.innerHTML = `<p style="color:#8c2f39;">The CSV was found, but the visualization code crashed. Open the browser console to see the exact JavaScript error.</p>`;
     });
   }
 }

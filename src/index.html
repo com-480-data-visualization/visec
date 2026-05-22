@@ -33,7 +33,10 @@
         <a href="#targets">Targets</a>
         <a href="#initiators">Incident types</a>
         <a href="#relationships">Relationships</a>
+        <a href="#sectors-actors">Sectors &amp; actors</a>
         <a href="#world-map">Map</a>
+        <a href="#methodology">Method</a>
+        <a href="#team">Team</a>
       </nav>
     </div>
   </header>
@@ -68,6 +71,10 @@
             <span class="filter-label">Selected country</span>
             <span class="filter-pill is-muted" id="country-pill">All countries</span>
           </div>
+          <div class="filter-group">
+            <span class="filter-label">Incident type</span>
+            <span class="filter-pill is-muted" id="type-pill">All types</span>
+          </div>
         </div>
 
         <button id="reset-filters" class="reset-btn" type="button">
@@ -94,7 +101,7 @@
               But the rise reflects more than raw attack frequency. Organizations detect incidents far more effectively today, the definition of what counts as a cyber incident has broadened, and attribution has attracted far greater institutional attention. The data cannot separate real growth in attacks from better reporting and greater awareness.
             </p>
             <div class="takeaway">
-              <strong>Interaction:</strong> Use the timeline below to isolate any period and see how the other charts respond.
+              <strong>Interaction:</strong> Drag the brush below the chart to isolate any period and watch every other view respond. Hover any of the small purple tags above the line to read what that year's defining incident actually was.
             </div>
           </div>
 
@@ -187,6 +194,9 @@
             <p>
               Hijacking with misuse dominates the dataset by a wide margin — nearly double the frequency of disruption or data theft, and more than three times that of ransomware. This last point is worth pausing on. Ransomware attracts enormous media and policy attention, yet in state-level incident data it ranks fourth. The gap between what dominates headlines and what dominates the record is not a coincidence: state-sponsored operations tend to favor persistent access and quiet exploitation over the loud, financially motivated attacks that make the news. The chart reflects the priorities of states, not criminals.
             </p>
+            <div class="takeaway">
+              <strong>Interaction:</strong> Click any bar to filter <em>every other chart</em> on the page by that incident type. Click it again to clear.
+            </div>
           </div>
 
           <div class="chart-shell">
@@ -261,10 +271,66 @@
       </div>
     </section>
 
-    <section class="story-section container" id="world-map">
+    <section class="story-section container" id="sectors-actors">
       <div class="section-heading">
         <div>
           <div class="section-tag">Section 5</div>
+          <h2>Behind the headlines: who attacks, and who gets hit?</h2>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <div class="section-grid">
+          <div class="section-text">
+            <h3>State actors, critical infrastructure, and the gap between them.</h3>
+            <p>
+              The country-level view answers <em>where</em>. The sector-and-actor view answers <em>who</em>. Two readings of the same record sit side by side here: which sectors absorb the incidents, and which kinds of actors initiate them. The pattern is recognisable in cybersecurity literature but rarely visualised cleanly. <strong>Critical infrastructure</strong> and <strong>state institutions</strong> dominate the target side by a wide margin, with corporate targets following at a distance. On the attacker side, <strong>non-state groups</strong> account for the largest share of recorded incidents — but a substantial fraction is attributed to <strong>state-affiliated actors</strong>, and another large fraction remains <strong>unattributed</strong>.
+            </p>
+            <p style="margin-top:14px">
+              The interplay matters: when an attack on critical infrastructure is attributed to a state-affiliated group, the incident shifts categories in international law. The chart pair below makes that intersection legible.
+            </p>
+            <div class="takeaway" id="sectors-detail"></div>
+          </div>
+
+          <div class="dual-chart-shell">
+            <div class="chart-shell">
+              <div class="chart-header">
+                <div>
+                  <div class="chart-title">Target sectors</div>
+                  <div class="chart-subtitle">What the attackers go after</div>
+                </div>
+                <div class="filter-chip-wrap" id="fc-sectors" hidden>
+                  <button class="filter-chip-btn" type="button" aria-expanded="false" aria-haspopup="true">
+                    <svg width="11" height="11" aria-hidden="true"><use href="#icon-filter"/></svg>
+                    <span class="filter-chip-summary"></span>
+                    <svg class="filter-chevron" width="8" height="8" aria-hidden="true"><use href="#icon-chevron"/></svg>
+                  </button>
+                  <div class="filter-dropdown" hidden>
+                    <div class="filter-dropdown-inner"></div>
+                  </div>
+                </div>
+              </div>
+              <div id="sectors-chart"></div>
+            </div>
+
+            <div class="chart-shell">
+              <div class="chart-header">
+                <div>
+                  <div class="chart-title">Initiator actor types</div>
+                  <div class="chart-subtitle">Who runs the operation</div>
+                </div>
+              </div>
+              <div id="actors-chart"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="story-section container" id="world-map">
+       <div class="section-heading">
+        <div>
+          <div class="section-tag">Section 6</div>
           <h2>Where do cyber attacks flow geographically?</h2>
         </div>
       </div>
@@ -314,11 +380,71 @@
       </div>
     </section>
 
+    <section class="story-section container" id="methodology">
+      <div class="section-heading">
+        <div>
+          <div class="section-tag">Method</div>
+          <h2>How this record is made.</h2>
+        </div>
+      </div>
+
+      <div class="method-grid">
+        <article class="method-card">
+          <div class="method-kicker">01 · Source</div>
+          <h3>EuRepoC</h3>
+          <p>
+            The data comes from the European Repository of Cyber Incidents, a public dataset maintained by a consortium of European research institutions. EuRepoC tracks <strong>publicly reported cyber operations</strong> from open sources &mdash; newspapers, government communiqués, vendor reports, court filings &mdash; and codes each one into structured fields.
+          </p>
+        </article>
+
+        <article class="method-card">
+          <div class="method-kicker">02 · What's in</div>
+          <h3>Incidents with documented attribution or impact</h3>
+          <p>
+            We kept 13 of the 84 original columns: date, target country and category, initiator country and category, six incident-type flags, and an impact indicator. We filtered to incidents with a parseable start year inside 2000&ndash;2025 &mdash; leaving <strong>4,374 records</strong> for the site.
+          </p>
+        </article>
+
+        <article class="method-card">
+          <div class="method-kicker">03 · What's not</div>
+          <h3>Undisclosed, unattributed, ongoing</h3>
+          <p>
+            The record reflects what was <em>made public and codeable</em>. Operations that remain classified, espionage that was never disclosed, and attacks whose attribution is still contested are not in the count. This is the single biggest caveat to every chart on the page.
+          </p>
+        </article>
+
+        <article class="method-card">
+          <div class="method-kicker">04 · Attribution</div>
+          <h3>"State-affiliated" is a probabilistic claim</h3>
+          <p>
+            EuRepoC uses three attribution levels: <strong>state</strong>, <strong>state-affiliated (suggested)</strong>, and <strong>unattributed</strong>. The middle category captures the typical real-world case &mdash; open-source evidence points to a state, but the link is not a court-grade finding. Treat each label as a confidence interval, not a verdict.
+          </p>
+        </article>
+
+        <article class="method-card">
+          <div class="method-kicker">05 · Multi-valued fields</div>
+          <h3>One incident can be many things</h3>
+          <p>
+            A single record can list multiple receiver countries, multiple initiators, and multiple incident types. The site splits these on parse and counts every occurrence. This is why totals across charts do not have to add up &mdash; an incident targeting three sectors contributes to all three sector bars.
+          </p>
+        </article>
+
+        <article class="method-card">
+          <div class="method-kicker">06 · How to read it</div>
+          <h3>Trends, not absolutes</h3>
+          <p>
+            The sharp rise in recorded incidents after 2014 reflects both <em>more activity</em> and <em>more reporting maturity</em>. Compare relative shapes &mdash; ratios, ranks, and shifts &mdash; rather than raw counts year over year.
+          </p>
+        </article>
+      </div>
+    </section>
+
+
     <section class="story-section container">
       <div class="section-heading">
         <div>
           <div class="section-tag">Conclusion</div>
-          <h2>What the data tells us — and what it doesn't.</h2>
+          <h2>What the data tells us &mdash; and what it doesn't.</h2>
         </div>
       </div>
 
@@ -326,22 +452,70 @@
         <article class="story-block">
           <h3>Cyber conflict is structured, not random.</h3>
           <p>
-            Across every dimension in this dataset — time, geography, incident type, and attacker–target pairs — the same pattern emerges: concentration. A handful of countries absorb the majority of recorded incidents. A handful of pairs recur year after year. Hijacking dominates over ransomware. The volume rises sharply after 2014 and again after 2022. These are not noise. They are the shape of cyber conflict as it actually operates.
+            Across every dimension in this dataset &mdash; time, geography, incident type, target sector, and attacker&ndash;target pairs &mdash; the same pattern emerges: concentration. A handful of countries absorb the majority of recorded incidents. A handful of pairs recur year after year. Critical infrastructure and state institutions dominate the target side. Hijacking dominates over ransomware. The volume rises sharply after 2014 and again after 2022. These are not noise. They are the shape of cyber conflict as it actually operates.
           </p>
         </article>
 
         <article class="story-block">
           <h3>The record has limits.</h3>
           <p>
-            What this dataset captures is what was attributed, reported, and recorded — not the full universe of cyber activity. State-sponsored operations that go undetected, incidents that are never disclosed, and attacks where attribution remains contested are all absent. The patterns here are real, but they reflect the priorities of the institutions doing the recording as much as the priorities of the attackers themselves.
+            What this dataset captures is what was attributed, reported, and recorded &mdash; not the full universe of cyber activity. State-sponsored operations that go undetected, incidents that are never disclosed, and attacks where attribution remains contested are all absent. The patterns here are real, but they reflect the priorities of the institutions doing the recording as much as the priorities of the attackers themselves.
           </p>
         </article>
       </div>
     </section>
+
+    <section class="story-section container" id="team">
+      <div class="section-heading">
+        <div>
+          <div class="section-tag" style="color:#c66a2a;">Team &amp; Credits</div>
+          <h2>The team behind the dashboard.</h2>
+        </div>
+      </div>
+
+      <p class="team-intro">
+        Built for the <strong>COM-480 Data Visualization</strong> course at EPFL, Spring 2025.
+      </p>
+
+      <div class="team-grid">
+        <article class="team-card">
+          <div class="team-photo-wrap">
+            <span class="team-initials">ZB</span>
+            <img src="image/team-ziyad.jpeg" alt="Ziyad Baghouri" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <h3 class="team-name">Ziyad Baghouri</h3>
+        </article>
+
+        <article class="team-card">
+          <div class="team-photo-wrap">
+            <span class="team-initials">RB</span>
+            <img src="image/team-rayane.png" alt="Rayane Bentahar" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <h3 class="team-name">Rayane Bentahar</h3>
+        </article>
+
+        <article class="team-card">
+          <div class="team-photo-wrap">
+            <span class="team-initials">AB</span>
+            <img src="image/team-ayman.jpeg" alt="Ayman Bakiri" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <h3 class="team-name">Ayman Bakiri</h3>
+        </article>
+
+        <article class="team-card">
+          <div class="team-photo-wrap">
+            <span class="team-initials">SG</span>
+            <img src="image/team-sami.jpeg" alt="Mohamed Sami Ghrab" loading="lazy" onerror="this.style.display='none'">
+          </div>
+          <h3 class="team-name">Mohamed Sami Ghrab</h3>
+        </article>
+      </div>
+    </section>
+
   </main>
 
   <footer class="container">
-    COM-480 Data Visualization · EPFL 2025 · EuRepoC dataset
+    COM-480 Data Visualization &middot; EPFL 2025 &middot; EuRepoC dataset
   </footer>
 
   <script src="script.js"></script>
