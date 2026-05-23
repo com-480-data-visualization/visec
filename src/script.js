@@ -359,22 +359,50 @@ function createTooltip() {
 
 const tooltip = createTooltip();
 
-function showTooltip(event, html) {
+// Position the tooltip relative to the cursor, but flip it to the left side
+// and clamp to the viewport when the natural position would overflow.
+function positionTooltip(event) {
+  const node = tooltip.node();
+  if (!node) return;
+  const rect = node.getBoundingClientRect();
+  const w = rect.width || 0;
+  const h = rect.height || 0;
+  const vw = window.innerWidth;
+  const margin = 8;
+
+  let left = event.pageX + 12;
+  if (left + w + margin > vw + window.scrollX) {
+    left = Math.max(margin, event.pageX - w - 12);
+  }
+
+  let top = event.pageY - 32;
+  if (top < window.scrollY + margin) top = event.pageY + 18;
+  if (top + h + margin > window.scrollY + window.innerHeight) {
+    top = Math.max(window.scrollY + margin, event.pageY - h - 12);
+  }
+
+  tooltip.style("left", `${left}px`).style("top", `${top}px`);
+}
+
+function showTooltip(event, html, opts = {}) {
   tooltip
     .style("opacity", 1)
     .html(html)
-    .style("left", `${event.pageX + 12}px`)
-    .style("top", `${event.pageY - 32}px`);
+    .style("white-space", opts.wide ? "normal" : "nowrap")
+    .style("max-width", opts.wide ? "300px" : "none")
+    .style("line-height", opts.wide ? "1.45" : "1.55");
+  positionTooltip(event);
 }
 
 function moveTooltip(event) {
-  tooltip
-    .style("left", `${event.pageX + 12}px`)
-    .style("top", `${event.pageY - 32}px`);
+  positionTooltip(event);
 }
 
 function hideTooltip() {
-  tooltip.style("opacity", 0);
+  tooltip
+    .style("opacity", 0)
+    .style("white-space", "nowrap")
+    .style("max-width", "none");
 }
 
 function renderMetrics() {
@@ -625,7 +653,8 @@ function renderTimeline() {
         showTooltip(
           event,
           `<strong>${evt.year} · ${evt.label}</strong><br>
-           <span style="opacity:0.85">${evt.detail}</span>`
+           <span style="opacity:0.85">${evt.detail}</span>`,
+          { wide: true }
         );
         d3.select(this).select("rect").attr("opacity", 1);
       })
