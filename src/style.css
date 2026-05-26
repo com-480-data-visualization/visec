@@ -661,6 +661,74 @@ svg {
   flex-shrink: 0;
 }
 
+/* ----- Section 5: dual chart shells (Sectors + Actors) ----- */
+.dual-chart-shell {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 14px;
+}
+
+.dual-chart-shell .chart-shell {
+  padding: 12px 14px;
+}
+
+.dual-chart-shell .chart-title {
+  font-size: 0.92rem;
+}
+
+.dual-chart-shell .chart-subtitle {
+  font-size: 0.82rem;
+}
+
+/* ----- Methodology section ----- */
+.method-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.method-card {
+  background: var(--surface);
+  border: 1px solid rgba(216, 209, 199, 0.75);
+  border-radius: 18px;
+  padding: 18px 18px 16px;
+  box-shadow: var(--shadow);
+}
+
+.method-kicker {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.method-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
+}
+
+.method-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 1100px) {
+  .method-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .method-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 footer {
   text-align: center;
   padding: 32px 0 28px;
@@ -736,79 +804,86 @@ footer {
   box-shadow: 0 0 0 2px rgba(15, 92, 148, 0.12);
 }
 
-.country-search-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  box-shadow: 0 8px 28px rgba(24, 33, 43, 0.13);
-  z-index: 40;
-  max-height: 220px;
-  overflow-y: auto;
-  padding: 4px;
+.country-
+/* ----- Team & Credits section ----- */
+.team-intro {
+  color: var(--muted);
+  max-width: 75ch;
+  margin: -4px 0 28px;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
-.csd-item {
-  padding: 7px 12px;
-  font-size: 0.87rem;
-  cursor: pointer;
-  color: var(--text);
-  border-radius: 8px;
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
 }
 
-.csd-item:hover,
-.csd-item.is-active {
+.team-card {
+  text-align: center;
+}
+
+.team-photo-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 22px;
+  overflow: hidden;
   background: var(--surface-alt);
+  border: 1px solid rgba(216, 209, 199, 0.75);
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+
+.team-initials {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--accent);
+  background: linear-gradient(135deg, var(--accent-soft) 0%, var(--surface-alt) 100%);
+  z-index: 0;
+}
+
+.team-photo-wrap img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  z-index: 1;
+  transition: transform 0.4s ease;
+}
+
+.team-card:hover .team-photo-wrap img {
+  transform: scale(1.04);
+}
+
+.team-name {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.team-role {
+  color: var(--muted);
+  font-size: 0.86rem;
 }
 
 @media (max-width: 1100px) {
-  .hero-grid,
-  .method-header,
-  .section-grid,
-  .map-text-row,
-  .metric-grid,
-  .principles,
-  .story-columns {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-grid .metric-grid {
+  .team-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .section-heading {
-    flex-direction: column;
-    align-items: start;
-  }
-
-  .section-text {
-    padding-right: 0;
   }
 }
 
-@media (max-width: 700px) {
-  .topbar-inner {
-    flex-direction: column;
-    align-items: start;
-  }
-
-  .nav {
-    gap: 8px;
-  }
-
-  .hero {
-    padding-top: 34px;
-  }
-
-  .section-card,
-  .chart-shell {
-    padding: 16px;
-  }
-
-  .controls-card {
-    align-items: start;
+@media (max-width: 500px) {
+  .team-grid {
+    grid-template-columns: 1fr;
   }
 }
