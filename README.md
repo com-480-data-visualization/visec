@@ -61,10 +61,8 @@ Then open `http://localhost:8080`. The server must be started from inside `src/`
 
 ## Milestone 3
 
-| | |
-|---|---|
-| Process book | [Visec_Process_Book.pdf](milestone_3/Visec_Process_Book.pdf) |
-| Final website | [com-480-data-visualization.github.io/visec/src](https://com-480-data-visualization.github.io/visec/src/) |
-| Screencast | [youtu.be/ar9VwpvmHVo](https://youtu.be/ar9VwpvmHVo) |
+- The process book can be found [here](milestone_3/Visec_Process_Book.pdf)
+- The final website is live [here](https://com-480-data-visualization.github.io/visec/src/)
+- The screencast is available [here](https://youtu.be/ar9VwpvmHVo)
 
 [![Screencast](https://img.youtube.com/vi/ar9VwpvmHVo/maxresdefault.jpg)](https://youtu.be/ar9VwpvmHVo)
