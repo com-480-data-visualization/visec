@@ -32,7 +32,7 @@ visec/
 │       └── refactor_data.py      # Script used to produce the cleaned CSV
 ├── milestone_1/                  # Exploratory analysis and M1 report
 ├── milestone_2/                  # Design sketches and M2 report
-├── milestone_3/                  # Process book and screencast
+├── milestone_3/                  # Process book 
 └── README.md
 ```
 
